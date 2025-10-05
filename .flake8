@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 127
+exclude = 
+    venv/,
+    migrations/,
+    __pycache__/,
+    staticfiles/,
+    .git/,
+    .github/,
+    node_modules/
+ignore = 
+    E203,
+    W503,
+    F401,
+    W293,
+    W291,
+    W292
+per-file-ignores =
+    */settings.py: F401,F403
+    test_*.py: F401
+    tests.py: F401
+    __init__.py: F401
+    */migrations/*.py: E501

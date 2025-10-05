@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+*.log
+debug.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/*
+!staticfiles/.gitkeep
+
+# Media files (keep structure but ignore uploads)
+media/excel_uploads/*
+!media/excel_uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Environment variables (CRÍTICO)
+.env
+.env.local
+.env.production
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Testing & Coverage
+.coverage
+.pytest_cache/
+htmlcov/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Excel temporary files
+~$*.xlsx
+~$*.xls
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS (macOS)
+.DS_Store
+._*
+
+# Docker (opcional)
+.dockerignore
+
+# Project specific
+debug.log
