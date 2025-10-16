@@ -1,0 +1,43 @@
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15
+    container_name: ucchristus_db_clean
+    environment:
+      POSTGRES_DB: ucchristus_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ucchristus_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Django
+  web:
+    build: .
+    container_name: ucchristus_web_clean
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DEBUG=True
+      - DB_HOST=db
+      - DB_NAME=ucchristus_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_PORT=5432
+
+volumes:
+  postgres_data:
