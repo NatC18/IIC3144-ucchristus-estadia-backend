@@ -1,0 +1,12 @@
+# Development requirements
+-r base.txt
+
+# Testing & Code Quality
+flake8==6.0.0
+bandit==1.7.5
+safety==2.3.4
+coverage==7.6.1
+
+# Development tools (if needed)
+# django-debug-toolbar==4.4.6
+# ipython==8.29.0

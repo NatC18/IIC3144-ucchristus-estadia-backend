@@ -40,7 +40,7 @@ class Auth0Authentication(authentication.BaseAuthentication):
             token = auth_header.split(' ')[1]
             
             # Usar la misma lógica de validación que el middleware
-            middleware = Auth0Middleware()
+            middleware = Auth0Middleware(lambda req: None)  # Dummy get_response
             
             user_info = middleware._validate_jwt_token(token)
             if not user_info:
