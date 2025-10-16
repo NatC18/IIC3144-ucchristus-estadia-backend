@@ -34,11 +34,13 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=1
-      - POSTGRES_DB=ucchristus_db
-      - POSTGRES_USER=ucchristus_user
-      - POSTGRES_PASSWORD=ucchristus_secure_password_2024
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
+      - DB_NAME=ucchristus_db
+      - DB_USER=ucchristus_user
+      - DB_PASSWORD=ucchristus_secure_password_2024
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - AUTH0_DOMAIN=${AUTH0_DOMAIN:-your-auth0-domain.auth0.com}
       - AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-your-auth0-api-identifier}
       - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID:-your-auth0-client-id}

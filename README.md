@@ -176,10 +176,25 @@ El pipeline se ejecuta automáticamente en:
 │   ├── admin.py                    # Interface admin cargas
 │   └── forms.py                    # Validación formularios
 │
-├── ⚙️ ucchristus_backend/          # Configuración Django
-│   ├── settings.py                 # Settings multi-environment
+├── ⚙️ config/                     # Configuración Django
+│   ├── settings/                   # Settings multi-environment
+│   │   ├── base.py                 # Configuración común
+│   │   ├── development.py          # Desarrollo local
+│   │   └── production.py           # Producción
 │   ├── urls.py                     # URL routing principal
-│   └── wsgi.py                     # WSGI production
+│   ├── wsgi.py                     # WSGI production
+│   └── asgi.py                     # ASGI async
+│
+├── 📱 apps/                        # Django Apps organizadas
+│   ├── core/                       # App: Utilidades comunes
+│   ├── usuarios/                   # App: Gestión usuarios
+│   ├── autenticacion/              # App: Auth0 JWT
+│   └── data_loader/                # App: Sistema carga Excel
+│
+├── 📋 requirements/                # Dependencias organizadas
+│   ├── base.txt                    # Dependencias comunes
+│   ├── development.txt             # Dependencias desarrollo
+│   └── production.txt              # Dependencias producción
 │
 ├── 🧪 tests.py                     # Test suite (15 casos)
 ├── 🗄️ init.sql                     # Configuración PostgreSQL
