@@ -17,15 +17,15 @@ services:
         fromDatabase:
           name: ucchristus-db
           property: connectionString
-      # Configurar estos con tus valores reales de Auth0
+      # Variables Auth0 - SE CONFIGURAN MANUALMENTE en Render Dashboard
       - key: AUTH0_DOMAIN
-        value: "tu-dominio.auth0.com"
+        sync: false  # Se configura manualmente por seguridad
       - key: AUTH0_AUDIENCE
-        value: "tu-audience"
+        sync: false  # Se configura manualmente por seguridad
       - key: AUTH0_CLIENT_ID
-        value: "tu-client-id"
+        sync: false  # Se configura manualmente por seguridad
       - key: AUTH0_CLIENT_SECRET
-        value: "tu-client-secret"
+        sync: false  # Se configura manualmente por seguridad
 
 databases:
   - name: ucchristus-db

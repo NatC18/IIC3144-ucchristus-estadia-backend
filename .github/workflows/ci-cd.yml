@@ -7,11 +7,14 @@ on:
     branches: [ main ]
 
 env:
-  POSTGRES_DB: ucchristus_test_db
-  POSTGRES_USER: test_user
-  POSTGRES_PASSWORD: test_password
-  POSTGRES_HOST: localhost
-  POSTGRES_PORT: 5432
+  # Variables de base de datos
+  DB_NAME: ucchristus_test_db
+  DB_USER: test_user
+  DB_PASSWORD: test_password
+  DB_HOST: localhost
+  DB_PORT: 5432
+  
+  # Variables Django adicionales
   DEBUG: 1
   SECRET_KEY: test-secret-key-for-ci
   AUTH0_DOMAIN: test.auth0.com
@@ -64,9 +67,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.DB_NAME }}
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -120,6 +123,9 @@ jobs:
         docker build -t ucchristus-backend:${{ github.sha }} .
         
     - name: 🔍 Test Docker image
+      env:
+        SECRET_KEY: ${{ env.SECRET_KEY }}
+        DEBUG: ${{ env.DEBUG }}
       run: |
         docker run --rm ucchristus-backend:${{ github.sha }} python manage.py check
 
