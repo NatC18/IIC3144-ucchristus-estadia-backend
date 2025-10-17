@@ -2,6 +2,9 @@
 Django==5.2.7
 djangorestframework==3.15.2
 
+# JWT Authentication
+djangorestframework-simplejwt==5.3.0
+
 # Filtros para DRF
 django-filter==24.3
 
@@ -19,6 +22,9 @@ dj-database-url==2.3.0
 
 # Para validaciones
 Pillow==11.0.0
+
+# Para producción
+gunicorn==23.0.0
 
 # Para testing
 pytest==8.3.4

@@ -1,165 +1,221 @@
 """
-Views para autenticación y gestión de usuarios
+Views para autenticación JWT y gestión de usuarios
 """
+
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from ..serializers.auth import (
+    ChangePasswordSerializer,
+    CustomTokenObtainPairSerializer,
+    UserProfileSerializer,
+    UserRegistrationSerializer,
+)
+
+User = get_user_model()
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def login(request):
+class CustomTokenObtainPairView(TokenObtainPairView):
     """
-    Endpoint de login personalizado
-    POST /api/auth/login/
-    
-    Body:
-    {
-        "username": "usuario",
-        "password": "contraseña"
-    }
-    
-    Response:
-    {
-        "token": "token_string",
-        "user_id": 1,
-        "username": "usuario"
-    }
+    Vista personalizada para obtener JWT tokens con datos del usuario
     """
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    if not username or not password:
-        return Response(
-            {'error': 'Username y password son requeridos'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    user = authenticate(username=username, password=password)
-    
-    if user:
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        })
-    else:
-        return Response(
-            {'error': 'Credenciales inválidas'}, 
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+
+    serializer_class = CustomTokenObtainPairSerializer
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def register(request):
     """
     Endpoint de registro de usuarios
     POST /api/auth/register/
-    
+
     Body:
     {
-        "username": "usuario",
-        "password": "contraseña",
-        "email": "email@example.com",
-        "first_name": "Nombre",
-        "last_name": "Apellido"
+        "email": "usuario@example.com",
+        "password": "contraseña_segura",
+        "confirm_password": "contraseña_segura",
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "rut": "12.345.678-9",
+        "rol": "MEDICO"
+    }
+
+    Response:
+    {
+        "message": "Usuario creado exitosamente",
+        "user": {...},
+        "tokens": {
+            "access": "...",
+            "refresh": "..."
+        }
     }
     """
-    username = request.data.get('username')
-    password = request.data.get('password')
-    email = request.data.get('email')
-    first_name = request.data.get('first_name', '')
-    last_name = request.data.get('last_name', '')
-    
-    if not username or not password:
+    serializer = UserRegistrationSerializer(data=request.data)
+
+    if serializer.is_valid():
+        user = serializer.save()
+
+        # Generar tokens JWT para el usuario recién creado
+        refresh = RefreshToken.for_user(user)
+        tokens = {"access": str(refresh.access_token), "refresh": str(refresh)}
+
+        # Serializar datos del usuario
+        user_serializer = UserProfileSerializer(user)
+
         return Response(
-            {'error': 'Username y password son requeridos'}, 
-            status=status.HTTP_400_BAD_REQUEST
+            {
+                "message": "Usuario creado exitosamente",
+                "user": user_serializer.data,
+                "tokens": tokens,
+            },
+            status=status.HTTP_201_CREATED,
         )
-    
-    # Verificar si el usuario ya existe
-    if User.objects.filter(username=username).exists():
-        return Response(
-            {'error': 'El usuario ya existe'}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Validar contraseña
-    try:
-        validate_password(password)
-    except ValidationError as e:
-        return Response(
-            {'error': list(e.messages)}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Crear usuario
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        email=email,
-        first_name=first_name,
-        last_name=last_name
-    )
-    
-    # Crear token
-    token = Token.objects.create(user=user)
-    
-    return Response({
-        'message': 'Usuario creado exitosamente',
-        'token': token.key,
-        'user_id': user.id,
-        'username': user.username,
-    }, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def logout(request):
     """
-    Endpoint de logout
+    Endpoint de logout (blacklist del refresh token)
     POST /api/auth/logout/
-    
+
     Headers:
-    Authorization: Token <token_string>
+    Authorization: Bearer <access_token>
+
+    Body:
+    {
+        "refresh": "refresh_token_here"
+    }
     """
     try:
-        # Eliminar el token del usuario
-        request.user.auth_token.delete()
-        return Response({'message': 'Logout exitoso'})
-    except:
+        refresh_token = request.data.get("refresh")
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+        return Response({"message": "Logout exitoso"}, status=status.HTTP_200_OK)
+    except Exception as e:
         return Response(
-            {'error': 'Token inválido'}, 
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "Token inválido o error al hacer logout"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def profile(request):
     """
     Endpoint para obtener información del usuario autenticado
     GET /api/auth/profile/
-    
+
     Headers:
-    Authorization: Token <token_string>
+    Authorization: Bearer <access_token>
+
+    Response:
+    {
+        "id": "uuid",
+        "email": "usuario@example.com",
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "nombre_completo": "Juan Pérez",
+        "rut": "12.345.678-9",
+        "rol": "MEDICO",
+        "is_staff": false,
+        "date_joined": "2024-01-01T00:00:00Z",
+        "last_login": "2024-01-01T00:00:00Z"
+    }
     """
-    user = request.user
-    return Response({
-        'user_id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'date_joined': user.date_joined,
-        'is_staff': user.is_staff,
-    })
+    serializer = UserProfileSerializer(request.user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["PUT", "PATCH"])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """
+    Endpoint para actualizar información del usuario autenticado
+    PUT/PATCH /api/auth/profile/update/
+
+    Headers:
+    Authorization: Bearer <access_token>
+
+    Body (campos opcionales):
+    {
+        "nombre": "Nuevo Nombre",
+        "apellido": "Nuevo Apellido",
+        "rol": "ENFERMERO"
+    }
+    """
+    serializer = UserProfileSerializer(
+        request.user, data=request.data, partial=request.method == "PATCH"
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"message": "Perfil actualizado exitosamente", "user": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """
+    Endpoint para cambiar contraseña
+    POST /api/auth/change-password/
+
+    Headers:
+    Authorization: Bearer <access_token>
+
+    Body:
+    {
+        "old_password": "contraseña_actual",
+        "new_password": "nueva_contraseña",
+        "confirm_password": "nueva_contraseña"
+    }
+    """
+    serializer = ChangePasswordSerializer(
+        data=request.data, context={"user": request.user}
+    )
+
+    if serializer.is_valid():
+        # Cambiar la contraseña
+        request.user.set_password(serializer.validated_data["new_password"])
+        request.user.save()
+
+        return Response(
+            {"message": "Contraseña cambiada exitosamente"}, status=status.HTTP_200_OK
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def verify_token(request):
+    """
+    Endpoint para verificar si un token JWT es válido
+    GET /api/auth/verify/
+
+    Headers:
+    Authorization: Bearer <access_token>
+
+    Response:
+    {
+        "valid": true,
+        "user": {...}
+    }
+    """
+    serializer = UserProfileSerializer(request.user)
+    return Response({"valid": True, "user": serializer.data}, status=status.HTTP_200_OK)
