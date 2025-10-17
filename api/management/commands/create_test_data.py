@@ -77,7 +77,7 @@ class Command(BaseCommand):
                 'nombre': 'Juan Pérez García',
                 'sexo': 'M',
                 'fecha_nacimiento': date(1980, 5, 15),
-                'prevision': 'FONASA',
+                'prevision_1': 'FONASA',
                 'convenio': 'Urgencia',
                 'score_social': 85
             },
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                 'nombre': 'María González López',
                 'sexo': 'F',
                 'fecha_nacimiento': date(1995, 8, 22),
-                'prevision': 'ISAPRE',
+                'prevision_1': 'ISAPRE',
                 'convenio': 'Consulta General',
                 'score_social': 92
             },
@@ -95,7 +95,7 @@ class Command(BaseCommand):
                 'nombre': 'Carlos Rodríguez Silva',
                 'sexo': 'M',
                 'fecha_nacimiento': date(1975, 12, 3),
-                'prevision': 'PARTICULAR',
+                'prevision_1': 'PARTICULAR',
                 'convenio': 'Especialidad',
                 'score_social': 78
             },
@@ -104,7 +104,7 @@ class Command(BaseCommand):
                 'nombre': 'Ana Martínez Torres',
                 'sexo': 'F',
                 'fecha_nacimiento': date(1988, 3, 10),
-                'prevision': 'FONASA',
+                'prevision_1': 'FONASA',
                 'convenio': 'Medicina General',
                 'score_social': 88
             },
@@ -113,7 +113,8 @@ class Command(BaseCommand):
                 'nombre': 'Luis Hernández Vega',
                 'sexo': 'M',
                 'fecha_nacimiento': date(1992, 7, 25),
-                'prevision': 'ISAPRE',
+                'prevision_1': 'ISAPRE',
+                'prevision_2': 'OTRO',
                 'convenio': 'Cardiología',
                 'score_social': 95
             }

@@ -34,7 +34,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
     
     # Filtros y búsqueda
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['sexo', 'prevision']
+    filterset_fields = ['sexo', 'prevision_1', 'prevision_2']
     search_fields = ['nombre', 'rut']
     ordering_fields = ['nombre', 'fecha_nacimiento', 'created_at']
     ordering = ['nombre']
@@ -100,7 +100,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
         paciente = self.get_object()
         # Aquí podrías agregar lógica para obtener historial médico
         return Response({
-            'paciente_id': paciente.id,
+            'id': paciente.id,
             'paciente_nombre': paciente.nombre,
             'historial': [],  # Placeholder para futuras implementaciones
             'message': 'Historial no implementado aún'

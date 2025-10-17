@@ -15,10 +15,11 @@ class PacienteAdmin(admin.ModelAdmin):
         'rut', 
         'sexo', 
         'edad', 
-        'prevision', 
+        'prevision_1', 
+        'prevision_2', 
         'created_at'
     ]
-    list_filter = ['sexo', 'prevision', 'created_at']
+    list_filter = ['sexo', 'prevision_1', 'prevision_2', 'created_at']
     search_fields = ['nombre', 'rut']
     readonly_fields = ['id', 'edad', 'created_at', 'updated_at']
     
@@ -27,7 +28,7 @@ class PacienteAdmin(admin.ModelAdmin):
             'fields': ('rut', 'nombre', 'sexo', 'fecha_nacimiento')
         }),
         ('Información Médica', {
-            'fields': ('prevision', 'convenio', 'score_social')
+            'fields': ('prevision_1', 'prevision_2', 'convenio', 'score_social')
         }),
         ('Metadatos', {
             'fields': ('id', 'created_at', 'updated_at'),
