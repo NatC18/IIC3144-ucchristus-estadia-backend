@@ -17,18 +17,18 @@ class PacienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = [
-            'id',
-            'rut',
-            'nombre', 
-            'sexo',
-            'fecha_nacimiento',
-            'edad',
-            'prevision_1',
-            'prevision_2',
-            'convenio',
-            'score_social',
-            'created_at',
-            'updated_at'
+            "id",
+            "rut",
+            "nombre",
+            "sexo",
+            "fecha_nacimiento",
+            "edad",
+            "prevision_1",
+            "prevision_2",
+            "convenio",
+            "score_social",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "edad"]
 
@@ -49,14 +49,14 @@ class PacienteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = [
-            'rut',
-            'nombre', 
-            'sexo',
-            'fecha_nacimiento',
-            'prevision_1',
-            'prevision_2',
-            'convenio',
-            'score_social',
+            "rut",
+            "nombre",
+            "sexo",
+            "fecha_nacimiento",
+            "prevision_1",
+            "prevision_2",
+            "convenio",
+            "score_social",
         ]
 
     def validate_rut(self, value):
@@ -78,11 +78,11 @@ class PacienteListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = [
-            'id',
-            'rut',
-            'nombre', 
-            'sexo',
-            'edad',
-            'prevision_1',
-            'prevision_2',
+            "id",
+            "rut",
+            "nombre",
+            "sexo",
+            "edad",
+            "prevision_1",
+            "prevision_2",
         ]

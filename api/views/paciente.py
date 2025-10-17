@@ -35,11 +35,11 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
     # Filtros y búsqueda
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['sexo', 'prevision_1', 'prevision_2']
-    search_fields = ['nombre', 'rut']
-    ordering_fields = ['nombre', 'fecha_nacimiento', 'created_at']
-    ordering = ['nombre']
-    
+    filterset_fields = ["sexo", "prevision_1", "prevision_2"]
+    search_fields = ["nombre", "rut"]
+    ordering_fields = ["nombre", "fecha_nacimiento", "created_at"]
+    ordering = ["nombre"]
+
     def get_serializer_class(self):
         """
         Retorna el serializer apropiado según la acción

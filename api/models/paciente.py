@@ -29,9 +29,9 @@ class Paciente(models.Model):
 
     # Choices
     SEXO_CHOICES = [
-        ('M', 'Hombre'),
-        ('F', 'Mujer'),
-        ('O', 'Otro'),
+        ("M", "Hombre"),
+        ("F", "Mujer"),
+        ("O", "Otro"),
     ]
 
     PREVISION_CHOICES = [
@@ -42,7 +42,7 @@ class Paciente(models.Model):
     ]
 
     # Campos
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rut = models.CharField(
         max_length=12,
