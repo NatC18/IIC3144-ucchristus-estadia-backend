@@ -29,9 +29,9 @@ class Paciente(models.Model):
 
     # Choices
     SEXO_CHOICES = [
-        ("M", "Masculino"),
-        ("F", "Femenino"),
-        ("O", "Otro"),
+        ('M', 'Hombre'),
+        ('F', 'Mujer'),
+        ('O', 'Otro'),
     ]
 
     PREVISION_CHOICES = [
@@ -42,6 +42,7 @@ class Paciente(models.Model):
     ]
 
     # Campos
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rut = models.CharField(
         max_length=12,
@@ -52,7 +53,8 @@ class Paciente(models.Model):
     nombre = models.CharField(max_length=200)
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     fecha_nacimiento = models.DateField()
-    prevision = models.CharField(max_length=20, choices=PREVISION_CHOICES)
+    prevision_1 = models.CharField(max_length=20, blank=True, null=True)
+    prevision_2 = models.CharField(max_length=20, blank=True, null=True)
     convenio = models.CharField(max_length=100, blank=True, null=True)
     score_social = models.IntegerField(blank=True, null=True)
 
