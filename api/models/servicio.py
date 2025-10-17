@@ -19,7 +19,7 @@ class Servicio(models.Model):
     
     class Meta:
         db_table = 'servicios'
-        ordering = ['codigo_servicio']
+        ordering = ['codigo']
         verbose_name = 'Servicio'
         verbose_name_plural = 'Servicios'
 

@@ -5,6 +5,11 @@ from .gestion import (
     GestionListSerializer,
     GestionUpdateSerializer
 )
+from .episodio import EpisodioSerializer
+from .servicio import ServicioSerializer
+from .episodioServicio import EpisodioServicioSerializer
+from .transferencia import TransferenciaSerializer
+from .cama import CamaSerializer
 
 __all__ = [
     'PacienteSerializer', 
@@ -14,4 +19,9 @@ __all__ = [
     'GestionCreateSerializer',
     'GestionListSerializer',
     'GestionUpdateSerializer',
+    'CamaSerializer',
+    'EpisodioServicioSerializer',
+    'EpisodioSerializer',
+    'ServicioSerializer',
+    'TransferenciaSerializer',
 ]

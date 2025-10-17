@@ -49,7 +49,8 @@ class PacienteCreateSerializer(serializers.ModelSerializer):
             'nombre', 
             'sexo',
             'fecha_nacimiento',
-            'prevision',
+            'prevision_1',
+            'prevision_2',
             'convenio',
             'score_social',
         ]

@@ -50,8 +50,8 @@ class Paciente(models.Model):
     nombre = models.CharField(max_length=200)
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     fecha_nacimiento = models.DateField()
-    prevision_1 = models.CharField(max_length=20)
-    prevision_2 = models.CharField(max_length=20)
+    prevision_1 = models.CharField(max_length=20, blank=True, null=True)
+    prevision_2 = models.CharField(max_length=20, blank=True, null=True)
     convenio = models.CharField(max_length=100, blank=True, null=True)
     score_social = models.IntegerField(blank=True, null=True)
     

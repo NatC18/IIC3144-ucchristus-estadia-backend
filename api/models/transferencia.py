@@ -22,15 +22,15 @@ class Transferencia(models.Model):
 
 
 
-    # Campos
-   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
-   gestion = models.OneToOneField('Gestion', on_delete=models.CASCADE, related_name='transferencia')
-   estado = models.CharField(max_length=25)
-   motivo_cancelacion = models.TextField(blank=True, null=True)
-   motivo_rechazo = models.TextField(blank=True, null=True)
-   tipo_traslado = models.CharField(max_length=50)
-   motivo_traslado = models.CharField(max_length=50)
-   centro_destinatario = models.CharField(max_length=100)
+        # Campos
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+    gestion = models.OneToOneField('Gestion', on_delete=models.CASCADE, related_name='transferencia')
+    estado = models.CharField(max_length=25)
+    motivo_cancelacion = models.TextField(blank=True, null=True)
+    motivo_rechazo = models.TextField(blank=True, null=True)
+    tipo_traslado = models.CharField(max_length=50)
+    motivo_traslado = models.CharField(max_length=50)
+    centro_destinatario = models.CharField(max_length=100)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
