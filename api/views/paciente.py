@@ -16,6 +16,9 @@ from api.serializers import (
     PacienteSerializer,
 )
 
+from api.models import Episodio
+from api.serializers import EpisodioSerializer
+
 
 class PacienteViewSet(viewsets.ModelViewSet):
     """
@@ -108,3 +111,14 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 "message": "Historial no implementado aún",
             }
         )
+    
+    @action(detail=True, methods=["get"])
+    def episodios(self, request, pk=None):
+        """
+        Endpoint para obtener los episodios de un paciente específico
+        GET /api/pacientes/{id}/episodios/
+        """
+        paciente_id = pk
+        episodios = Episodio.objects.filter(paciente__id=paciente_id).order_by('-fecha_ingreso')
+        serializer = EpisodioSerializer(episodios, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

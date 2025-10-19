@@ -6,7 +6,10 @@ from .auth import (
     UserRegistrationSerializer,
 )
 from .cama import CamaSerializer
-from .episodio import EpisodioSerializer
+from .episodio import (
+    EpisodioSerializer,
+    EpisodioListSerializer,
+)
 from .episodioServicio import EpisodioServicioSerializer
 from .gestion import (
     GestionCreateSerializer,
@@ -38,6 +41,7 @@ __all__ = [
     "CamaSerializer",
     "EpisodioServicioSerializer",
     "EpisodioSerializer",
+    "EpisodioListSerializer",
     "ServicioSerializer",
     "TransferenciaSerializer",
 ]

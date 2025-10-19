@@ -39,6 +39,7 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=5),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cardiología",
+            "estancia_norma_grd": 5.0,
         },
         {
             "episodio_cmbd": 100002,
@@ -47,6 +48,7 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=3),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Medicina General",
+            "estancia_norma_grd": 3.0,
         },
     ]
 
@@ -60,6 +62,7 @@ def create_episodios_y_gestiones():
             "fecha_egreso": timezone.now() - timedelta(days=10),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cirugía General",
+            "estancia_norma_grd": 7.0,
         },
         {
             "episodio_cmbd": 100004,
@@ -69,6 +72,7 @@ def create_episodios_y_gestiones():
             "fecha_egreso": timezone.now() - timedelta(days=17),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Traumatología",
+            "estancia_norma_grd": 4.0,
         },
     ]
 
