@@ -118,7 +118,6 @@ class PacienteViewSet(viewsets.ModelViewSet):
         Endpoint para obtener los episodios de un paciente específico
         GET /api/pacientes/{id}/episodios/
         """
-        paciente_id = pk
-        episodios = Episodio.objects.filter(paciente__id=paciente_id).order_by('-fecha_ingreso')
+        episodios = Episodio.objects.filter(paciente__id=pk).order_by('-fecha_ingreso')
         serializer = EpisodioSerializer(episodios, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
