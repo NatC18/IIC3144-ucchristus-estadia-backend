@@ -1,10 +1,11 @@
 import logging
 import threading
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
-from rest_framework.decorators import api_view, permission_classes
+
 from django.shortcuts import get_object_or_404
+from rest_framework import permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from api.models.archivo_carga import ArchivoCarga
 from api.serializers.archivo_serializers import CargaArchivoSerializer
@@ -78,7 +79,7 @@ class ArchivoUploadView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Validar tipo de datos
-            tipos_validos = ['USERS', 'PACIENTES', 'CAMAS', 'EPISODIOS', 'GESTIONES']
+            tipos_validos = ['USERS', 'PACIENTES', 'CAMAS', 'EPISODIOS', 'GESTIONES', 'NWP']
             if tipo.upper() not in tipos_validos:
                 return Response({
                     'error': 'Tipo inválido',

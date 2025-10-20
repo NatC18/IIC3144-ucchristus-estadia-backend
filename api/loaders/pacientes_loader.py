@@ -1,6 +1,8 @@
 import pandas as pd
+
 from api.models import Paciente
 from api.models.paciente import validar_rut
+
 
 def cargar_pacientes(file_path):
     df = pd.read_excel(file_path)

@@ -1,27 +1,29 @@
 """
 Vistas para el manejo de carga de archivos Excel
 """
-from rest_framework import status, permissions
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+import logging
+import threading
+
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-import threading
-import logging
+from rest_framework import permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
 
 from api.models import ArchivoCarga
 from api.serializers.archivo_serializers import (
-    CargaArchivoSerializer,
     ArchivoCargaSerializer,
-    EstadoProcesamientoSerializer
+    CargaArchivoSerializer,
+    EstadoProcesamientoSerializer,
 )
 from api.services import (
-    UserExcelProcessor,
-    PacienteExcelProcessor,
     CamaExcelProcessor,
     EpisodioExcelProcessor,
     GestionExcelProcessor,
+    PacienteEpisodioExcelProcessor,
+    PacienteExcelProcessor,
+    UserExcelProcessor,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,7 @@ def obtener_procesador(tipo: str):
         'CAMAS': CamaExcelProcessor,
         'EPISODIOS': EpisodioExcelProcessor,
         'GESTIONES': GestionExcelProcessor,
+        'NWP': PacienteEpisodioExcelProcessor,  # Para archivos de pacientes y episodios
     }
     return procesadores.get(tipo)
 
@@ -210,9 +213,10 @@ def plantilla_excel(request, tipo):
     """
     Descargar plantilla Excel con las columnas requeridas para cada tipo
     """
-    from django.http import HttpResponse
-    import pandas as pd
     from io import BytesIO
+
+    import pandas as pd
+    from django.http import HttpResponse
     
     procesador_class = obtener_procesador(tipo.upper())
     if not procesador_class:

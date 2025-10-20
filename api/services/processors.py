@@ -2,12 +2,16 @@
 Procesadores específicos para cada modelo del sistema
 """
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Dict, List, Optional
-from django.core.exceptions import ValidationError
-from django.contrib.auth.hashers import make_password
 
-from api.models import User, Paciente, Cama, Episodio, Gestion, Servicio
+import pandas as pd
+from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+from api.models import Cama, Episodio, Gestion, Paciente, Servicio, User
+
 from .excel_processor import ExcelProcessor
 
 
@@ -439,6 +443,206 @@ class GestionExcelProcessor(ExcelProcessor):
             for formato in formatos:
                 try:
                     return datetime.strptime(fecha, formato).date()
+                except:
+                    continue
+            raise ValueError(f"No se pudo convertir fecha: {fecha}")
+        else:
+            raise ValueError(f"Tipo de fecha no soportado: {type(fecha)}")
+
+
+class PacienteEpisodioExcelProcessor(ExcelProcessor):
+    """Procesador para archivos Excel que contienen datos de pacientes y episodios"""
+    
+    def get_columnas_requeridas(self) -> List[str]:
+        return [
+            'rut_paciente', 'nombre_paciente', 'episodio', 'habitacion', 
+            'cama', 'categoria_tratamiento', 'fecha_admision'
+        ]
+    
+    def get_columnas_opcionales(self) -> List[str]:
+        return [
+            'asign_enfermeria', 'desc_enfermeria', 'medico_tratante',
+            'cama_bloqueada', 'codigo_bloqueo', 'descripcion_bloqueo',
+            'tipo_movimiento', 'fecha_carga', 'desviación'
+        ]
+    
+    def _validar_estructura(self) -> bool:
+        """Valida que tenga las columnas necesarias para pacientes y episodios"""
+        columnas_df = set(self.df.columns)
+        columnas_requeridas = set(self.get_columnas_requeridas())
+        
+        if not columnas_requeridas.issubset(columnas_df):
+            faltantes = columnas_requeridas - columnas_df
+            self._agregar_error(1, f"Faltan columnas requeridas: {', '.join(faltantes)}")
+            return False
+        
+        return True
+    
+    def _validar_fila(self, datos: Dict, numero_fila: int) -> Optional[Dict]:
+        """Valida los datos específicos de paciente y episodio"""
+        errores_fila = []
+        
+        # Validar RUT del paciente
+        if not datos.get('rut_paciente'):
+            errores_fila.append("RUT del paciente es requerido")
+        elif not self._validar_rut(datos['rut_paciente']):
+            errores_fila.append("RUT del paciente no tiene formato válido")
+        
+        # Validar nombre del paciente
+        if not datos.get('nombre_paciente'):
+            errores_fila.append("Nombre del paciente es requerido")
+        
+        # Validar número de episodio
+        if not datos.get('episodio'):
+            errores_fila.append("Número de episodio es requerido")
+        else:
+            try:
+                episodio_num = int(datos['episodio'])
+                # Verificar que no existe ya un episodio con este número
+                if Episodio.objects.filter(episodio_cmbd=episodio_num).exists():
+                    errores_fila.append(f"Ya existe episodio con número {episodio_num}")
+                datos['episodio_cmbd'] = episodio_num
+            except (ValueError, TypeError):
+                errores_fila.append("Número de episodio debe ser numérico")
+        
+        # Validar y buscar cama
+        if not datos.get('cama') or not datos.get('habitacion'):
+            errores_fila.append("Código de cama y habitación son requeridos")
+        else:
+            try:
+                cama = Cama.objects.get(
+                    codigo_cama=datos['cama'],
+                    habitacion=datos['habitacion']
+                )
+                
+                # Verificar que la cama no esté ocupada por otro episodio activo
+                episodio_activo = cama.episodios.filter(fecha_egreso__isnull=True).first()
+                if episodio_activo:
+                    errores_fila.append(f"La cama {datos['cama']} ya está ocupada por episodio activo")
+                
+                datos['cama_obj'] = cama
+            except Cama.DoesNotExist:
+                errores_fila.append(f"No existe cama {datos['cama']} en habitación {datos['habitacion']}")
+        
+        # Validar fecha de admisión
+        if not datos.get('fecha_admision'):
+            errores_fila.append("Fecha de admisión es requerida")
+        else:
+            try:
+                datos['fecha_admision_parsed'] = self._convertir_fecha_excel(datos['fecha_admision'])
+            except Exception as e:
+                errores_fila.append(f"Fecha de admisión inválida: {str(e)}")
+        
+        # Validar categoría de tratamiento
+        if not datos.get('categoria_tratamiento'):
+            errores_fila.append("Categoría de tratamiento es requerida")
+        
+        if errores_fila:
+            self._agregar_error(numero_fila, "; ".join(errores_fila))
+            return None
+        
+        return datos
+    
+    def _procesar_fila_modelo(self, datos: Dict, numero_fila: int):
+        """Crea/actualiza paciente y crea episodio asociado"""
+        try:
+            # Crear o actualizar paciente
+            paciente = self._crear_o_actualizar_paciente(datos)
+            
+            # Crear episodio
+            self._crear_episodio(datos, paciente)
+            
+        except Exception as e:
+            self._agregar_error(numero_fila, f"Error al procesar: {str(e)}")
+            self.registros_error += 1
+            raise
+    
+    def _crear_o_actualizar_paciente(self, datos: Dict) -> Paciente:
+        """Crea un nuevo paciente o actualiza uno existente"""
+        rut_paciente = datos['rut_paciente']
+        
+        try:
+            # Buscar paciente existente
+            paciente = Paciente.objects.get(rut=rut_paciente)
+            
+            # Actualizar nombre si es diferente (opcional)
+            if datos['nombre_paciente'] != paciente.nombre:
+                paciente.nombre = datos['nombre_paciente']
+                paciente.save(update_fields=['nombre'])
+            
+            return paciente
+            
+        except Paciente.DoesNotExist:
+            # Crear nuevo paciente con datos mínimos
+            # Nota: Los campos requeridos como sexo y fecha_nacimiento 
+            # necesitarán valores por defecto o ser agregados al archivo
+            paciente_data = {
+                'rut': rut_paciente,
+                'nombre': datos['nombre_paciente'],
+                'sexo': 'O',  # Valor por defecto - podría venir del archivo
+                'fecha_nacimiento': date(1900, 1, 1),  # Valor por defecto
+                'prevision_1': 'OTRO',  # Valor por defecto
+            }
+            
+            return Paciente.objects.create(**paciente_data)
+    
+    def _crear_episodio(self, datos: Dict, paciente: Paciente):
+        """Crea un nuevo episodio para el paciente"""
+        episodio_data = {
+            'paciente': paciente,
+            'cama': datos['cama_obj'],
+            'episodio_cmbd': datos['episodio_cmbd'],
+            'fecha_ingreso': timezone.make_aware(
+                datetime.combine(datos['fecha_admision_parsed'], datetime.min.time())
+            ),
+            'tipo_actividad': datos.get('categoria_tratamiento', 'Hospitalización'),
+            'especialidad': datos.get('desc_enfermeria', ''),
+            # Campos adicionales que podrían venir del archivo
+            'inlier_outlier_flag': None,
+            'estancia_prequirurgica': None,
+            'estancia_postquirurgica': None,
+            'estancia_norma_grd': None,
+        }
+        
+        return Episodio.objects.create(**episodio_data)
+    
+    def _validar_rut(self, rut: str) -> bool:
+        """Valida formato de RUT chileno"""
+        if not rut:
+            return False
+        
+        # Aceptar ambos formatos: XX.XXX.XXX-X o XXXXXXXX-X
+        import re
+        rut_str = str(rut).strip()
+        
+        # Formato con puntos: XX.XXX.XXX-X
+        formato_con_puntos = re.match(r'^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$', rut_str)
+        # Formato sin puntos: XXXXXXXX-X
+        formato_sin_puntos = re.match(r'^\d{7,8}-[\dkK]$', rut_str)
+        
+        return bool(formato_con_puntos or formato_sin_puntos)
+    
+    def _convertir_fecha_excel(self, fecha) -> date:
+        """Convierte diferentes formatos de fecha de Excel a objeto date"""
+        if pd.isna(fecha):
+            raise ValueError("Fecha vacía")
+        
+        if isinstance(fecha, date):
+            return fecha
+        elif isinstance(fecha, datetime):
+            return fecha.date()
+        elif isinstance(fecha, (int, float)):
+            # Fecha de Excel como número serial
+            try:
+                return pd.to_datetime(fecha, origin='1899-12-30', unit='D').date()
+            except:
+                raise ValueError(f"No se pudo convertir fecha numérica: {fecha}")
+        elif isinstance(fecha, str):
+            # Intentar diferentes formatos de texto
+            formatos = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d', '%d.%m.%Y']
+            for formato in formatos:
+                try:
+                    return datetime.strptime(fecha.strip(), formato).date()
                 except:
                     continue
             raise ValueError(f"No se pudo convertir fecha: {fecha}")
