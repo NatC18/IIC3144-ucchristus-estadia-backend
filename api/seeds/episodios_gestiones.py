@@ -39,6 +39,7 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=5),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cardiología",
+            "estancia_norma_grd": 3,  # Este debería aparecer como extensión crítica
         },
         {
             "episodio_cmbd": 100002,
@@ -47,6 +48,16 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=3),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Medicina General",
+            "estancia_norma_grd": 7,  # Este NO debería aparecer como extensión crítica
+        },
+        {
+            "episodio_cmbd": 100005,
+            "paciente": pacientes[2] if len(pacientes) > 2 else None,
+            "cama": camas[2] if len(camas) > 2 else None,
+            "fecha_ingreso": timezone.now() - timedelta(days=10),
+            "tipo_actividad": "Hospitalización",
+            "especialidad": "Neurología",
+            "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica
         },
     ]
 
@@ -94,18 +105,22 @@ def create_episodios_y_gestiones():
     episodios_guardados = list(Episodio.objects.all())
     medicos_disponibles = list(User.objects.filter(rol="MEDICO"))
 
+    # Crear un índice por CMBD para evitar depender del orden
+    epis_by_cmbd = {e.episodio_cmbd: e for e in episodios_guardados}
+    medico_default = medicos_disponibles[0] if medicos_disponibles else None
+
     # Crear gestiones solo si tenemos episodios realmente guardados
     if episodios_guardados and medicos_disponibles:
         print(f"  📋 Creando gestiones para {len(episodios_guardados)} episodios...")
 
         gestiones_data = []
 
-        # Gestion 1: Solo si tenemos al menos 1 episodio y 1 médico
-        if len(episodios_guardados) >= 1 and len(medicos_disponibles) >= 1:
+        # 100001 → HOMECARE_UCCC (EN_PROGRESO)
+        if epis_by_cmbd.get(100001):
             gestiones_data.append(
                 {
-                    "episodio": episodios_guardados[0],
-                    "usuario": medicos_disponibles[0],
+                    "episodio": epis_by_cmbd[100001],
+                    "usuario": medico_default,
                     "tipo_gestion": "HOMECARE_UCCC",
                     "estado_gestion": "EN_PROGRESO",
                     "fecha_inicio": timezone.now() - timedelta(days=2),
@@ -113,16 +128,12 @@ def create_episodios_y_gestiones():
                 }
             )
 
-        # Gestion 2: Solo si tenemos al menos 2 episodios y médicos
-        if len(episodios_guardados) >= 2 and len(medicos_disponibles) >= 2:
+        # 100002 → COORDINACION_UCCC (COMPLETADA)
+        if epis_by_cmbd.get(100002):
             gestiones_data.append(
                 {
-                    "episodio": episodios_guardados[1],
-                    "usuario": (
-                        medicos_disponibles[1]
-                        if len(medicos_disponibles) > 1
-                        else medicos_disponibles[0]
-                    ),
+                    "episodio": epis_by_cmbd[100002],
+                    "usuario": medico_default,
                     "tipo_gestion": "COORDINACION_UCCC",
                     "estado_gestion": "COMPLETADA",
                     "fecha_inicio": timezone.now() - timedelta(days=1),
@@ -131,17 +142,16 @@ def create_episodios_y_gestiones():
                 }
             )
 
-        # Gestion 3: Solo si tenemos al menos 3 episodios
-        if len(episodios_guardados) >= 3:
+        # 100005 → TRASLADO (EN_PROGRESO) - Tipo de gestión distinto
+        if epis_by_cmbd.get(100005):
             gestiones_data.append(
                 {
-                    "episodio": episodios_guardados[2],
-                    "usuario": medicos_disponibles[0],
-                    "tipo_gestion": "EVALUACION_UCCC",
-                    "estado_gestion": "COMPLETADA",
-                    "fecha_inicio": timezone.now() - timedelta(days=12),
-                    "fecha_fin": timezone.now() - timedelta(days=11),
-                    "informe": "Evaluación completada.",
+                    "episodio": epis_by_cmbd[100005],
+                    "usuario": medico_default,
+                    "tipo_gestion": "TRASLADO",
+                    "estado_gestion": "EN_PROGRESO",
+                    "fecha_inicio": timezone.now() - timedelta(days=4),
+                    "informe": "Traslado solicitado por equipo médico.",
                 }
             )
 
