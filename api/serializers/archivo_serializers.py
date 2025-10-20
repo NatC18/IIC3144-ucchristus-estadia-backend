@@ -2,6 +2,7 @@
 Serializadores para el manejo de archivos Excel
 """
 from rest_framework import serializers
+
 from api.models import ArchivoCarga
 
 
@@ -49,6 +50,7 @@ class CargaArchivoSerializer(serializers.Serializer):
         ('CAMAS', 'Camas'),
         ('EPISODIOS', 'Episodios'),
         ('GESTIONES', 'Gestiones'),
+        ('NWP', 'Pacientes y Episodios'),
     ]
     
     archivo = serializers.FileField(
