@@ -1,3 +1,4 @@
+from .archivo_carga import ArchivoCarga
 from .cama import Cama
 from .episodio import Episodio
 from .episodioServicio import EpisodioServicio
@@ -8,6 +9,7 @@ from .transferencia import Transferencia
 from .usuario import User
 
 __all__ = [
+    "ArchivoCarga",
     "Paciente",
     "Gestion",
     "Episodio",
