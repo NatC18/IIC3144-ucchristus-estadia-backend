@@ -81,7 +81,7 @@ class Gestion(models.Model):
         if self.fecha_fin and self.fecha_inicio:
             return (self.fecha_fin - self.fecha_inicio).days
         else:
-            from datetime import datetime
+            from datetime import date
 
-            today = datetime.now()
+            today = date.now()
             return (today - self.fecha_inicio).days if self.fecha_inicio else None

@@ -47,7 +47,7 @@ class Episodio(models.Model):
         verbose_name_plural = "Episodios"
 
     def __str__(self):
-        return f"Episodio {self.episodio_id} - Paciente: {self.paciente.nombre}"
+        return f"Episodio {self.id} - Paciente: {self.paciente.nombre}"
 
     def save(self, *args, **kwargs):
         # Validar que la cama no esté asignada a otro episodio activo
@@ -71,5 +71,5 @@ class Episodio(models.Model):
         else:
             from datetime import date
 
-            today = date.today()
+            today = date.now()
             return (today - self.fecha_ingreso).days

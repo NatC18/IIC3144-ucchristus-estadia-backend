@@ -71,6 +71,7 @@ def create_episodios_y_gestiones():
             "fecha_egreso": timezone.now() - timedelta(days=10),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cirugía General",
+            "estancia_norma_grd": 7.0,
         },
         {
             "episodio_cmbd": 100004,
@@ -80,6 +81,7 @@ def create_episodios_y_gestiones():
             "fecha_egreso": timezone.now() - timedelta(days=17),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Traumatología",
+            "estancia_norma_grd": 4.0,
         },
     ]
 
