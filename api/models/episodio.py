@@ -69,7 +69,7 @@ class Episodio(models.Model):
         if self.fecha_egreso and self.fecha_ingreso:
             return (self.fecha_egreso - self.fecha_ingreso).days
         else:
-            from datetime import datetime
+            from datetime import date
 
-            today = datetime.now()
+            today = date.now()
             return (today - self.fecha_ingreso).days

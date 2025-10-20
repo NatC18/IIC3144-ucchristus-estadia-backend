@@ -76,7 +76,7 @@ class Paciente(models.Model):
         """Calcular edad del paciente"""
         from datetime import date
 
-        today = date.today()
+        today = date.now()
         return (
             today.year
             - self.fecha_nacimiento.year
