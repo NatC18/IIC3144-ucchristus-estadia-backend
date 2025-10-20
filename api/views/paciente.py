@@ -9,15 +9,13 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Paciente
+from api.models import Episodio, Paciente
 from api.serializers import (
+    EpisodioSerializer,
     PacienteCreateSerializer,
     PacienteListSerializer,
     PacienteSerializer,
 )
-
-from api.models import Episodio
-from api.serializers import EpisodioSerializer
 
 
 class PacienteViewSet(viewsets.ModelViewSet):
@@ -111,13 +109,13 @@ class PacienteViewSet(viewsets.ModelViewSet):
                 "message": "Historial no implementado aún",
             }
         )
-    
+
     @action(detail=True, methods=["get"])
     def episodios(self, request, pk=None):
         """
         Endpoint para obtener los episodios de un paciente específico
         GET /api/pacientes/{id}/episodios/
         """
-        episodios = Episodio.objects.filter(paciente__id=pk).order_by('-fecha_ingreso')
+        episodios = Episodio.objects.filter(paciente__id=pk).order_by("-fecha_ingreso")
         serializer = EpisodioSerializer(episodios, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
