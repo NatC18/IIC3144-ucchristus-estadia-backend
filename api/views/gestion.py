@@ -79,10 +79,9 @@ class GestionViewSet(viewsets.ModelViewSet):
             tipo_code = item["tipo_gestion"]
             # Buscar el label del choice
             tipo_label = dict(Gestion.TIPO_GESTION_CHOICES).get(tipo_code, tipo_code)
-            tipo_gestion_data.append({
-                "tipo_gestion": tipo_label,
-                "cantidad": item["cantidad"]
-            })
+            tipo_gestion_data.append(
+                {"tipo_gestion": tipo_label, "cantidad": item["cantidad"]}
+            )
 
         return Response(
             {
@@ -123,7 +122,9 @@ class GestionViewSet(viewsets.ModelViewSet):
                     "descripcion": g.informe
                     or f"Gestión de {g.get_tipo_gestion_display()}",
                     "estado": estado_map.get(g.estado_gestion, "Abierta"),
-                    "fecha_inicio": g.fecha_inicio.isoformat() if g.fecha_inicio else None,
+                    "fecha_inicio": (
+                        g.fecha_inicio.isoformat() if g.fecha_inicio else None
+                    ),
                 }
             )
 

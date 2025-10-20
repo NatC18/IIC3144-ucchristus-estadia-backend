@@ -59,7 +59,6 @@ def create_episodios_y_gestiones():
             "especialidad": "Neurología",
             "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica
         },
-        
     ]
 
     # Episodios cerrados (con fecha de egreso)

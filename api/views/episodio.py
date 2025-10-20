@@ -74,14 +74,14 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         total_dias = 0
         count = 0
         hoy = timezone.now().date()
-        
+
         # Episodios cerrados: usar fecha de egreso
         for ep in episodios_egresados:
             if ep.fecha_egreso and ep.fecha_ingreso:
                 dias = (ep.fecha_egreso.date() - ep.fecha_ingreso.date()).days
                 total_dias += dias
                 count += 1
-        
+
         # Episodios activos: usar fecha actual (hasta hoy)
         for ep in episodios_activos:
             if ep.fecha_ingreso:
@@ -95,7 +95,7 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         extensiones_criticas = 0
         for ep in episodios_activos:
             dias_estadia = (hoy - ep.fecha_ingreso.date()).days
-            if ep.estancia_norma_grd and dias_estadia > ep.estancia_norma_grd * (4/3):
+            if ep.estancia_norma_grd and dias_estadia > ep.estancia_norma_grd * (4 / 3):
                 extensiones_criticas += 1
 
         # Altas de hoy
@@ -129,14 +129,16 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         for ep in episodios:
             dias_estadia = (hoy - ep.fecha_ingreso.date()).days
             if ep.estancia_norma_grd:
-                if dias_estadia > ep.estancia_norma_grd * (4/3):
-                    data.append({
-                        "episodio": str(ep.episodio_cmbd),
-                        "paciente": ep.paciente.nombre,
-                        "dias_estadia": dias_estadia,
-                        "fecha_ingreso": ep.fecha_ingreso,
-                        "dias_esperados": ep.estancia_norma_grd,
-                    })
+                if dias_estadia > ep.estancia_norma_grd * (4 / 3):
+                    data.append(
+                        {
+                            "episodio": str(ep.episodio_cmbd),
+                            "paciente": ep.paciente.nombre,
+                            "dias_estadia": dias_estadia,
+                            "fecha_ingreso": ep.fecha_ingreso,
+                            "dias_esperados": ep.estancia_norma_grd,
+                        }
+                    )
             # Si no hay norma, puedes decidir si mostrar o no
 
         return Response(data)
@@ -149,35 +151,44 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         """
         from collections import defaultdict
         from datetime import timedelta
-        
+
         hoy = timezone.now().date()
         hace_12_meses = hoy - timedelta(days=365)
-        
+
         # Obtener episodios de los últimos 12 meses
-        episodios = self.get_queryset().filter(
-            fecha_ingreso__gte=hace_12_meses
-        )
-        
+        episodios = self.get_queryset().filter(fecha_ingreso__gte=hace_12_meses)
+
         # Agrupar por mes
         meses_data = defaultdict(set)  # usar set para contar pacientes únicos
-        
+
         for ep in episodios:
             mes_anio = ep.fecha_ingreso.strftime("%Y-%m")
             meses_data[mes_anio].add(ep.paciente_id)
-        
+
         # Preparar los últimos 12 meses en orden
         resultado = []
-        meses_nombres = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", 
-                        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-        
+        meses_nombres = [
+            "Ene",
+            "Feb",
+            "Mar",
+            "Abr",
+            "May",
+            "Jun",
+            "Jul",
+            "Ago",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dic",
+        ]
+
         for i in range(11, -1, -1):
-            fecha_mes = hoy - timedelta(days=30*i)
+            fecha_mes = hoy - timedelta(days=30 * i)
             mes_key = fecha_mes.strftime("%Y-%m")
             mes_nombre = meses_nombres[int(fecha_mes.strftime("%m")) - 1]
-            
-            resultado.append({
-                "mes": mes_nombre,
-                "pacientes": len(meses_data.get(mes_key, set()))
-            })
-        
+
+            resultado.append(
+                {"mes": mes_nombre, "pacientes": len(meses_data.get(mes_key, set()))}
+            )
+
         return Response(resultado)
