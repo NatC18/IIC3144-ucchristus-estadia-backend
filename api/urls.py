@@ -6,7 +6,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from api.views import PacienteViewSet, health_check
+from api.views import EpisodioViewSet, GestionViewSet, PacienteViewSet, health_check
 from api.views.auth import (
     CustomTokenObtainPairView,
     change_password,
@@ -20,6 +20,8 @@ from api.views.auth import (
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r"pacientes", PacienteViewSet)
+router.register(r"episodios", EpisodioViewSet)
+router.register(r"gestiones", GestionViewSet)
 
 urlpatterns = [
     # Rutas del router (incluye todas las operaciones CRUD)
