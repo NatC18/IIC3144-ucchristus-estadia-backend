@@ -4,9 +4,9 @@ services:
     image: postgres:15
     container_name: ucchristus_db_clean
     environment:
-      POSTGRES_DB: ucchristus_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -34,10 +34,11 @@ services:
     environment:
       - DEBUG=True
       - DB_HOST=db
-      - DB_NAME=ucchristus_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=5432
 
 volumes:
   postgres_data:
+  
