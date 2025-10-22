@@ -4,7 +4,7 @@ Serializers para el modelo Gestion
 
 from rest_framework import serializers
 
-from api.models import Gestion, Episodio, Paciente
+from api.models import Gestion
 
 
 class GestionSerializer(serializers.ModelSerializer):
