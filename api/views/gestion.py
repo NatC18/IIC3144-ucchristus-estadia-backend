@@ -27,7 +27,11 @@ class GestionViewSet(viewsets.ModelViewSet):
     - DELETE /api/gestiones/{id}/ - Eliminar gestión
     """
 
-    queryset = Gestion.objects.select_related("episodio", "usuario").all()
+    queryset = Gestion.objects.select_related(
+        "episodio",
+        "episodio__paciente",
+        "usuario"
+    ).all()
     serializer_class = GestionSerializer
     permission_classes = [IsAuthenticated]
 

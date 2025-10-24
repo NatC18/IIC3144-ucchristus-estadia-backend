@@ -21,6 +21,10 @@ class GestionSerializer(serializers.ModelSerializer):
     estado_gestion_display = serializers.CharField(
         source="get_estado_gestion_display", read_only=True
     )
+    # Custom fields for related data
+    episodio_cmbd = serializers.SerializerMethodField()
+    paciente_nombre = serializers.SerializerMethodField()
+    paciente_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Gestion
@@ -39,6 +43,10 @@ class GestionSerializer(serializers.ModelSerializer):
             "informe",
             "created_at",
             "updated_at",
+            "episodio_cmbd",
+            "paciente_nombre",
+            "paciente_id",
+
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -49,6 +57,31 @@ class GestionSerializer(serializers.ModelSerializer):
         if obj.usuario:
             return f"{obj.usuario.nombre} {obj.usuario.apellido}"
         return None
+
+    def get_paciente_nombre(self, obj):
+        """
+        Retorna el nombre del paciente asociado al episodio
+        """
+        if obj.episodio and obj.episodio.paciente:
+            return obj.episodio.paciente.nombre
+        return None
+
+    def get_episodio_cmbd(self, obj):
+        """
+        Retorna el episodio_cmbd del episodio asociado
+        """
+        if obj.episodio:
+            return obj.episodio.episodio_cmbd
+        return None
+
+    def get_paciente_id(self, obj):
+        """
+        Retorna el ID del paciente asociado al episodio
+        """
+        if obj.episodio and obj.episodio.paciente:
+            return str(obj.episodio.paciente.id)
+        return None
+    
 
 
 class GestionCreateSerializer(serializers.ModelSerializer):
