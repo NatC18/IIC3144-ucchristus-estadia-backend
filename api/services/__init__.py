@@ -13,11 +13,11 @@ from .processors import (
 )
 
 __all__ = [
-    'ExcelProcessor',
-    'UserExcelProcessor',
-    'PacienteExcelProcessor', 
-    'CamaExcelProcessor',
-    'EpisodioExcelProcessor',
-    'GestionExcelProcessor',
-    'PacienteEpisodioExcelProcessor',
+    "ExcelProcessor",
+    "UserExcelProcessor",
+    "PacienteExcelProcessor",
+    "CamaExcelProcessor",
+    "EpisodioExcelProcessor",
+    "GestionExcelProcessor",
+    "PacienteEpisodioExcelProcessor",
 ]

@@ -7,9 +7,9 @@ from .auth import (
 )
 from .cama import CamaSerializer
 from .episodio import (
-    EpisodioSerializer,
     EpisodioCreateSerializer,
     EpisodioListSerializer,
+    EpisodioSerializer,
     EpisodioUpdateSerializer,
 )
 from .episodioServicio import EpisodioServicioSerializer

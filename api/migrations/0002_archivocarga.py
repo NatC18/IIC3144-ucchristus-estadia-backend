@@ -10,31 +10,108 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ("api", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ArchivoCarga',
+            name="ArchivoCarga",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('nombre', models.CharField(help_text='Nombre original del archivo', max_length=255)),
-                ('archivo', models.FileField(upload_to='uploads/excel/')),
-                ('tipo', models.CharField(choices=[('users', 'Usuarios'), ('pacientes', 'Pacientes'), ('camas', 'Camas'), ('episodios', 'Episodios'), ('gestiones', 'Gestiones'), ('servicios', 'Servicios'), ('mixto', 'Datos Mixtos')], help_text='Tipo de datos en el archivo', max_length=20)),
-                ('estado', models.CharField(choices=[('SUBIDO', 'Archivo Subido'), ('PROCESANDO', 'Procesando'), ('COMPLETADO', 'Procesamiento Completado'), ('ERROR', 'Error en Procesamiento'), ('PARCIAL', 'Procesamiento Parcial')], default='SUBIDO', max_length=20)),
-                ('subido_en', models.DateTimeField(auto_now_add=True)),
-                ('procesado_en', models.DateTimeField(blank=True, null=True)),
-                ('filas_totales', models.IntegerField(blank=True, help_text='Total de filas en el archivo', null=True)),
-                ('filas_procesadas', models.IntegerField(default=0, help_text='Filas procesadas exitosamente')),
-                ('filas_error', models.IntegerField(default=0, help_text='Filas con errores')),
-                ('log_procesamiento', models.JSONField(blank=True, default=dict, help_text='Log detallado del procesamiento')),
-                ('errores', models.JSONField(blank=True, default=list, help_text='Lista de errores encontrados')),
-                ('subido_por', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='archivos_subidos', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "nombre",
+                    models.CharField(
+                        help_text="Nombre original del archivo", max_length=255
+                    ),
+                ),
+                ("archivo", models.FileField(upload_to="uploads/excel/")),
+                (
+                    "tipo",
+                    models.CharField(
+                        choices=[
+                            ("users", "Usuarios"),
+                            ("pacientes", "Pacientes"),
+                            ("camas", "Camas"),
+                            ("episodios", "Episodios"),
+                            ("gestiones", "Gestiones"),
+                            ("servicios", "Servicios"),
+                            ("mixto", "Datos Mixtos"),
+                        ],
+                        help_text="Tipo de datos en el archivo",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("SUBIDO", "Archivo Subido"),
+                            ("PROCESANDO", "Procesando"),
+                            ("COMPLETADO", "Procesamiento Completado"),
+                            ("ERROR", "Error en Procesamiento"),
+                            ("PARCIAL", "Procesamiento Parcial"),
+                        ],
+                        default="SUBIDO",
+                        max_length=20,
+                    ),
+                ),
+                ("subido_en", models.DateTimeField(auto_now_add=True)),
+                ("procesado_en", models.DateTimeField(blank=True, null=True)),
+                (
+                    "filas_totales",
+                    models.IntegerField(
+                        blank=True, help_text="Total de filas en el archivo", null=True
+                    ),
+                ),
+                (
+                    "filas_procesadas",
+                    models.IntegerField(
+                        default=0, help_text="Filas procesadas exitosamente"
+                    ),
+                ),
+                (
+                    "filas_error",
+                    models.IntegerField(default=0, help_text="Filas con errores"),
+                ),
+                (
+                    "log_procesamiento",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Log detallado del procesamiento",
+                    ),
+                ),
+                (
+                    "errores",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="Lista de errores encontrados",
+                    ),
+                ),
+                (
+                    "subido_por",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="archivos_subidos",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Archivo de Carga',
-                'verbose_name_plural': 'Archivos de Carga',
-                'ordering': ['-subido_en'],
+                "verbose_name": "Archivo de Carga",
+                "verbose_name_plural": "Archivos de Carga",
+                "ordering": ["-subido_en"],
             },
         ),
     ]

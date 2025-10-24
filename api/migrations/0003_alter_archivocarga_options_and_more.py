@@ -6,37 +6,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0002_archivocarga'),
+        ("api", "0002_archivocarga"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='archivocarga',
-            options={'ordering': ['-fecha_carga'], 'verbose_name': 'Archivo de Carga', 'verbose_name_plural': 'Archivos de Carga'},
+            name="archivocarga",
+            options={
+                "ordering": ["-fecha_carga"],
+                "verbose_name": "Archivo de Carga",
+                "verbose_name_plural": "Archivos de Carga",
+            },
         ),
         migrations.RenameField(
-            model_name='archivocarga',
-            old_name='subido_en',
-            new_name='fecha_carga',
+            model_name="archivocarga",
+            old_name="subido_en",
+            new_name="fecha_carga",
         ),
         migrations.RenameField(
-            model_name='archivocarga',
-            old_name='procesado_en',
-            new_name='fecha_procesamiento',
+            model_name="archivocarga",
+            old_name="procesado_en",
+            new_name="fecha_procesamiento",
         ),
         migrations.RenameField(
-            model_name='archivocarga',
-            old_name='filas_error',
-            new_name='filas_errores',
+            model_name="archivocarga",
+            old_name="filas_error",
+            new_name="filas_errores",
         ),
         migrations.RenameField(
-            model_name='archivocarga',
-            old_name='subido_por',
-            new_name='usuario',
+            model_name="archivocarga",
+            old_name="subido_por",
+            new_name="usuario",
         ),
         migrations.AddField(
-            model_name='archivocarga',
-            name='filas_exitosas',
-            field=models.IntegerField(default=0, help_text='Filas procesadas sin errores'),
+            model_name="archivocarga",
+            name="filas_exitosas",
+            field=models.IntegerField(
+                default=0, help_text="Filas procesadas sin errores"
+            ),
         ),
     ]

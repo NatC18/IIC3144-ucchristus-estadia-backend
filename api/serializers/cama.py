@@ -10,9 +10,9 @@ from api.models import Cama
 class CamaSerializer(serializers.ModelSerializer):
     """
     Serializer completo para el modelo Cama
+    Usado en contextos donde se necesita información básica de la cama
+    sin referencias circulares a episodios
     """
-
-    # Campos relacionados de solo lectura
 
     class Meta:
         model = Cama
@@ -20,6 +20,5 @@ class CamaSerializer(serializers.ModelSerializer):
             "id",
             "codigo_cama",
             "habitacion",
-            "episodio_actual",
         ]
-        read_only_fields = ["id", "episodio_actual"]
+        read_only_fields = ["id"]

@@ -61,7 +61,7 @@ class Episodio(models.Model):
                 raise ValidationError(
                     f"La cama {self.cama.codigo_cama} ya está asignada a otro episodio activo."
                 )
-        
+
         # Siempre llamar a super().save() para guardar el objeto
         super().save(*args, **kwargs)
 
@@ -73,5 +73,5 @@ class Episodio(models.Model):
         else:
             from datetime import date
 
-            today = date.now()
-            return (today - self.fecha_ingreso).days
+            today = date.today()
+            return (today - self.fecha_ingreso.date()).days

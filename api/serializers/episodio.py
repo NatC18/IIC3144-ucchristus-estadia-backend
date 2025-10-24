@@ -13,7 +13,10 @@ class EpisodioSerializer(serializers.ModelSerializer):
     Serializer completo para el modelo Episodio
     Incluye datos completos de la cama asociada
     """
+
     cama = CamaSerializer(read_only=True)
+    paciente = serializers.PrimaryKeyRelatedField(read_only=True)
+    estancia_dias = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Episodio
