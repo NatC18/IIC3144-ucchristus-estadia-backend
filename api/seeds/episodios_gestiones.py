@@ -72,6 +72,8 @@ def create_episodios_y_gestiones():
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cirugía General",
             "estancia_norma_grd": 7.0,
+            "inlier_outlier_flag": "Outlier",
+            "estancia_postquirurgica": 32,
         },
         {
             "episodio_cmbd": 100004,
@@ -82,6 +84,8 @@ def create_episodios_y_gestiones():
             "tipo_actividad": "Hospitalización",
             "especialidad": "Traumatología",
             "estancia_norma_grd": 4.0,
+            "inlier_outlier_flag": "Inlier",
+            "estancia_postquirurgica": 23,
         },
     ]
 
