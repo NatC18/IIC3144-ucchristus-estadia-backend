@@ -2,7 +2,7 @@ services:
   # Base de datos PostgreSQL
   db:
     image: postgres:15
-    container_name: ucchristus_db_clean
+    container_name: ucchristus_db
     environment:
       POSTGRES_DB: ucchristus_db
       POSTGRES_USER: postgres
@@ -20,7 +20,7 @@ services:
   # Aplicación Django
   web:
     build: .
-    container_name: ucchristus_web_clean
+    container_name: ucchristus_web
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"

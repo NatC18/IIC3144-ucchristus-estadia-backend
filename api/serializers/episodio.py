@@ -5,12 +5,15 @@ Serializers para el modelo Episodio
 from rest_framework import serializers
 
 from api.models import Episodio
+from api.serializers.cama import CamaSerializer
 
 
 class EpisodioSerializer(serializers.ModelSerializer):
     """
     Serializer completo para el modelo Episodio
+    Incluye datos completos de la cama asociada
     """
+    cama = CamaSerializer(read_only=True)
 
     class Meta:
         model = Episodio

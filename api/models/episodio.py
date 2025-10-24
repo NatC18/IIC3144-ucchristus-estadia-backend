@@ -50,7 +50,7 @@ class Episodio(models.Model):
         return f"Episodio {self.id} - Paciente: {self.paciente.nombre}"
 
     def save(self, *args, **kwargs):
-        # Validar que la cama no esté asignada a otro episodio activo
+        # Validar que la cama no esté asignada a otro episodio activo (solo si hay cama)
         if self.cama and not self.fecha_egreso:
             conflicto = (
                 Episodio.objects.filter(cama=self.cama, fecha_egreso__isnull=True)
@@ -61,7 +61,9 @@ class Episodio(models.Model):
                 raise ValidationError(
                     f"La cama {self.cama.codigo_cama} ya está asignada a otro episodio activo."
                 )
-            super().save(*args, **kwargs)
+        
+        # Siempre llamar a super().save() para guardar el objeto
+        super().save(*args, **kwargs)
 
     @property
     def estancia_dias(self):

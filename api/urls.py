@@ -28,6 +28,7 @@ from api.views.frontend_upload import (
     list_user_uploads,
     upload_excel_frontend,
 )
+from api.views.excel_import import upload_excel_files, import_status
 from api.views.process_view import ProcesarArchivoView
 from api.views.upload_view import ArchivoUploadView, get_archivo_status
 
@@ -66,4 +67,7 @@ urlpatterns = [
     path("frontend/upload/", upload_excel_frontend, name="frontend_upload"),
     path("frontend/upload/status/<uuid:archivo_id>/", get_upload_status, name="frontend_upload_status"),
     path("frontend/upload/list/", list_user_uploads, name="frontend_upload_list"),
+    # Rutas para importación de archivos Excel locales
+    path("excel/import/", upload_excel_files, name="excel_import"),
+    path("excel/import/status/", import_status, name="excel_import_status"),
 ]

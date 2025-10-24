@@ -439,7 +439,7 @@ class GestionExcelProcessor(ExcelProcessor):
             return fecha.date()
         elif isinstance(fecha, str):
             # Intentar diferentes formatos
-            formatos = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d']
+            formatos = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y', '%Y/%m/%d', '%m/%d/%y', '%d/%m/%y']
             for formato in formatos:
                 try:
                     return datetime.strptime(fecha, formato).date()
