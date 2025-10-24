@@ -28,9 +28,7 @@ class GestionViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Gestion.objects.select_related(
-        "episodio",
-        "episodio__paciente",
-        "usuario"
+        "episodio", "episodio__paciente", "usuario"
     ).all()
     serializer_class = GestionSerializer
     permission_classes = [IsAuthenticated]
