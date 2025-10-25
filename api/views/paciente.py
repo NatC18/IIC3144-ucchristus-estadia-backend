@@ -93,6 +93,44 @@ class PacienteViewSet(viewsets.ModelViewSet):
             }
         )
 
+    @action(detail=False, methods=["get"], url_path="score_social_faltante")
+    def score_social_faltante(self, request):
+        """
+        Contar pacientes sin score social (sólo aquellos con score_social = NULL)
+        GET /api/pacientes/score_social_faltante/
+        """
+        # Consideramos "faltante" únicamente cuando score_social es NULL.
+        sin_score = self.get_queryset().filter(score_social__isnull=True).count()
+        return Response({"sin_score_social": sin_score}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="score_social_top")
+    def score_social_top(self, request):
+        """
+        Top N pacientes con mayor score social (mayor = más crítico)
+        GET /api/pacientes/score_social_top/?limit=5
+        """
+        try:
+            limit = int(request.query_params.get("limit", 5))
+        except (TypeError, ValueError):
+            limit = 5
+
+        pacientes_qs = (
+            self.get_queryset()
+            .filter(score_social__isnull=False)
+            .order_by("-score_social")[:limit]
+        )
+
+        data = [
+            {
+                "id": p.id,
+                "nombre": p.nombre,
+                "rut": p.rut,
+                "score_social": p.score_social,
+            }
+            for p in pacientes_qs
+        ]
+        return Response({"top": data}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def historial(self, request, pk=None):
         """

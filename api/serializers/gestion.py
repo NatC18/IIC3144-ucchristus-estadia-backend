@@ -46,7 +46,6 @@ class GestionSerializer(serializers.ModelSerializer):
             "episodio_cmbd",
             "paciente_nombre",
             "paciente_id",
-
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -81,7 +80,6 @@ class GestionSerializer(serializers.ModelSerializer):
         if obj.episodio and obj.episodio.paciente:
             return str(obj.episodio.paciente.id)
         return None
-    
 
 
 class GestionCreateSerializer(serializers.ModelSerializer):
