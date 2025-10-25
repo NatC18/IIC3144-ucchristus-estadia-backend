@@ -93,6 +93,16 @@ class PacienteViewSet(viewsets.ModelViewSet):
             }
         )
 
+    @action(detail=False, methods=["get"], url_path="score_social_faltante")
+    def score_social_faltante(self, request):
+        """
+        Contar pacientes sin score social (sólo aquellos con score_social = NULL)
+        GET /api/pacientes/score_social_faltante/
+        """
+        # Consideramos "faltante" únicamente cuando score_social es NULL.
+        sin_score = self.get_queryset().filter(score_social__isnull=True).count()
+        return Response({"sin_score_social": sin_score}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def historial(self, request, pk=None):
         """
