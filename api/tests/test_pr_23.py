@@ -1,7 +1,9 @@
-from rest_framework import status
-from django.utils import timezone
 from datetime import date
-from api.models import Paciente, Episodio
+
+from django.utils import timezone
+from rest_framework import status
+
+from api.models import Episodio, Paciente
 from api.tests.base_test import AuthenticatedAPITestCase
 
 

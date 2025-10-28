@@ -1,6 +1,7 @@
-from api.tests.base_test import AuthenticatedAPITestCase
-from api.models import Paciente, Episodio
 from datetime import date, datetime, timezone
+
+from api.models import Episodio, Paciente
+from api.tests.base_test import AuthenticatedAPITestCase
 
 
 class VisualizarFichaPacienteIntegrationTest(AuthenticatedAPITestCase):
