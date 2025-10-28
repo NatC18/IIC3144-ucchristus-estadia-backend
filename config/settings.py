@@ -138,7 +138,9 @@ REST_FRAMEWORK = {
 }
 
 # === CORS CONFIG ===
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+raw_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+# Convertir en lista y filtrar elementos vacíos
+CORS_ALLOWED_ORIGINS = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
 # 🔹 En desarrollo, permitir todos los orígenes
 if DEBUG:
