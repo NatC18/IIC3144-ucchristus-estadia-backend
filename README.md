@@ -54,7 +54,7 @@ docker compose exec web bash
 bash check-linting.sh
 
 # Correr tests coverage
-bash docker-compose run --rm web ./run-tests.sh
+docker-compose run --rm web ./run-tests.sh
 ```
 ## 🏥 Tecnologías
 

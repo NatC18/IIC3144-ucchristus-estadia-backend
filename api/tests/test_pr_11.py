@@ -1,15 +1,17 @@
+from datetime import date
+
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+
+from api.models import Episodio, Paciente, User
 from api.models.gestion import Gestion
 from api.serializers.gestion import GestionCreateSerializer
-from api.models import Episodio, User, Paciente
-from datetime import date
 
 
 class GestionCreateSerializerTest(TestCase):
     """Tests unitarios para creación de gestiones (PR-11)"""
-    
+
     def setUp(self):
         # Crear un paciente de prueba válido según el modelo real
         self.paciente = Paciente.objects.create(
@@ -17,29 +19,23 @@ class GestionCreateSerializerTest(TestCase):
             nombre="Juan Pérez",
             sexo="M",
             fecha_nacimiento=date(1980, 5, 20),
-            prevision_1="FONASA"
+            prevision_1="FONASA",
         )
 
         # Crear un usuario gestor
         self.usuario = User.objects.create(
-            nombre="Felipe",
-            apellido="Abarca",
-            email="gestor@test.cl"
+            nombre="Felipe", apellido="Abarca", email="gestor@test.cl"
         )
 
         # Crear un episodio asociado al paciente
         self.episodio = Episodio.objects.create(
-            paciente=self.paciente,
-            episodio_cmbd=1,
-            fecha_ingreso=timezone.now()
+            paciente=self.paciente, episodio_cmbd=1, fecha_ingreso=timezone.now()
         )
 
         # Fechas de prueba
         self.fecha_inicio = timezone.now()
         self.fecha_fin_correcta = self.fecha_inicio + timezone.timedelta(days=2)
         self.fecha_fin_invalida = self.fecha_inicio - timezone.timedelta(days=1)
-
-
 
     def test_creacion_gestion_valida(self):
         data = {

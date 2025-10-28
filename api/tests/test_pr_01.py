@@ -1,5 +1,6 @@
-from rest_framework import status
 from django.contrib.auth import get_user_model
+from rest_framework import status
+
 from api.tests.base_test import AuthenticatedAPITestCase
 
 User = get_user_model()
