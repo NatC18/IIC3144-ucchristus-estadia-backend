@@ -3,6 +3,9 @@ source = api
 omit =
     */migrations/*
     */tests/*
+    */models/*
+    */management/*
+    */seeds/*
     */admin.py
     */apps.py
     manage.py

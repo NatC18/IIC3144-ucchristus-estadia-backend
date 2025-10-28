@@ -41,3 +41,4 @@ class VisualizarFichaPacienteIntegrationTest(AuthenticatedAPITestCase):
         # Verifica que los episodios correspondan al paciente
         for episodio in response.data:
             self.assertIn("episodio_cmbd", episodio)
+    
