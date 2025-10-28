@@ -3,8 +3,9 @@ Django settings for config project.
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
+
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -95,7 +96,9 @@ else:
 
 # === PASSWORD VALIDATION ===
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -135,7 +138,9 @@ REST_FRAMEWORK = {
 }
 
 # === CORS CONFIG ===
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+raw_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+# Convertir en lista y filtrar elementos vacíos
+CORS_ALLOWED_ORIGINS = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
 # 🔹 En desarrollo, permitir todos los orígenes
 if DEBUG:
