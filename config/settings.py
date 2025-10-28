@@ -4,24 +4,29 @@ Django settings for config project.
 
 import os
 from pathlib import Path
-
+from datetime import timedelta
 import dj_database_url
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# === BASE PATH ===
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security
+# === SECURITY ===
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "django-insecure-1gje=*n&l&-v86km8_o7eygttl%lryl3v928t1goy56l9jj3cl"
 )
 DEBUG = os.getenv("DEBUG", "True").lower() in ["true", "1", "yes"]
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
 
-# Application definition
+# ⚠️ En producción (Render), Render define automáticamente su dominio (*.onrender.com)
+# Y tú puedes extenderlo con tu frontend de Vercel
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,.onrender.com"
+).split(",")
+
+# === APPS ===
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,12 +43,11 @@ THIRD_PARTY_APPS = [
     "django_filters",
 ]
 
-LOCAL_APPS = [
-    "api",
-]
+LOCAL_APPS = ["api"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+# === MIDDLEWARE ===
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -74,8 +78,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
-# Database
+# === DATABASE ===
 if os.getenv("DATABASE_URL"):
     DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL"))}
 else:
@@ -90,47 +93,33 @@ else:
         }
     }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# === PASSWORD VALIDATION ===
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
-# Internationalization
+# === INTERNATIONALIZATION ===
 LANGUAGE_CODE = "es-cl"
 TIME_ZONE = "America/Santiago"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
-STATIC_URL = "static/"
+# === STATIC & MEDIA ===
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Media files
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Custom User Model
+# === AUTH USER ===
 AUTH_USER_MODEL = "api.User"
 
-# Django REST Framework
+# === DRF CONFIG ===
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -145,51 +134,27 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-]
+# === CORS CONFIG ===
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 
-CORS_ALLOW_CREDENTIALS = True
-
-# Para desarrollo, permitir todos los orígenes (cambiar en producción)
+# 🔹 En desarrollo, permitir todos los orígenes
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# JWT Configuration
-from datetime import timedelta
+CORS_ALLOW_CREDENTIALS = True
 
+# === JWT CONFIG ===
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Access token válido por 1 hora
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Refresh token válido por 7 días
-    "ROTATE_REFRESH_TOKENS": True,  # Generar nuevo refresh token al renovar
-    "BLACKLIST_AFTER_ROTATION": True,  # Invalidar el refresh token anterior
-    "UPDATE_LAST_LOGIN": True,  # Actualizar last_login al hacer login
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    "AUDIENCE": None,
-    "ISSUER": None,
-    "JSON_ENCODER": None,
-    "JWK_URL": None,
-    "LEEWAY": 0,
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-    "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
-    "JTI_CLAIM": "jti",
-    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=60),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=7),
-    # Personalización para devolver datos del usuario en el token
     "TOKEN_OBTAIN_SERIALIZER": "api.serializers.auth.CustomTokenObtainPairSerializer",
 }
