@@ -81,13 +81,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # === DATABASE ===
 DATABASE_URL = os.getenv("DATABASE_URL")
+DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,  # mantiene la conexión activa
-            ssl_require=True,  # Render requiere SSL para la DB
+            ssl_require=not DEBUG,  # usa SSL solo en producción (DEBUG=False)
         )
     }
 else:
