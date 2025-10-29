@@ -23,9 +23,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() in ["true", "1", "yes"]
 
 # ⚠️ En producción (Render), Render define automáticamente su dominio (*.onrender.com)
 # Y tú puedes extenderlo con tu frontend de Vercel
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,.onrender.com"
-).split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost").split(",")
 
 # === APPS ===
 DJANGO_APPS = [
