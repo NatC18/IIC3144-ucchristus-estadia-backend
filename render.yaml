@@ -14,7 +14,10 @@ services:
       python manage.py migrate --noinput &&
       python manage.py seed_db --force
 
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: >
+      sh -c "python manage.py migrate --noinput &&
+            python manage.py seed_db --force &&
+            gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
 
 
     healthCheckPath: /health/
