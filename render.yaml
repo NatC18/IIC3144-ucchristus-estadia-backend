@@ -2,14 +2,20 @@ services:
   - type: web
     name: ucchristus-backend
     env: python
+    runtime: python-3.11
     plan: free
+
     buildCommand: >
+      pip install --upgrade pip &&
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
+
     startCommand: >
       python manage.py migrate --noinput &&
       gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+
     healthCheckPath: /api/health/
+
     envVars:
       - key: DEBUG
         value: "False"
