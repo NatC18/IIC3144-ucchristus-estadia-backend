@@ -80,8 +80,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # === DATABASE ===
-if os.getenv("DATABASE_URL"):
-    DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL"))}
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,  # mantiene la conexión activa
+            ssl_require=True,  # Render requiere SSL para la DB
+        )
+    }
 else:
     DATABASES = {
         "default": {
