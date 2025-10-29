@@ -10,11 +10,14 @@ services:
       pip install -r requirements.txt &&
       python manage.py collectstatic --noinput
 
-    startCommand: >
+    postDeployCommand: >
       python manage.py migrate --noinput &&
-      gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+      python manage.py seed_db --force
 
-    healthCheckPath: /api/health/
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+
+
+    healthCheckPath: /health/
 
     envVars:
       - key: DEBUG
