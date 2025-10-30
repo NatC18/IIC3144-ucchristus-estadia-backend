@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
+
 from django.test import TestCase
 from django.utils import timezone
-from api.models import Paciente, Episodio, Gestion, Transferencia
+
 from api.management.modules.db_importer import DatabaseImporter
+from api.models import Episodio, Gestion, Paciente, Transferencia
+
 
 class DatabaseImporterTransferenciaTest(TestCase):
     """Tests de importación de transferencias usando DatabaseImporter"""
