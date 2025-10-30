@@ -728,9 +728,11 @@ ExcelProcessor._convertir_fecha = (
 # 🧩 TESTS ADICIONALES - Cobertura de estructura y casos borde (procesors.py)
 # ==========================================================================================
 
-import pytest
-import pandas as pd
 from unittest.mock import MagicMock
+
+import pandas as pd
+import pytest
+
 from api.services import processors
 
 
@@ -745,14 +747,18 @@ def archivo_mock():
 # 1️⃣ Estructura inválida en todos los procesadores
 # ---------------------------------------------------
 
-@pytest.mark.parametrize("processor_class", [
-    processors.UserExcelProcessor,
-    processors.PacienteExcelProcessor,
-    processors.CamaExcelProcessor,
-    processors.EpisodioExcelProcessor,
-    processors.GestionExcelProcessor,
-    processors.PacienteEpisodioExcelProcessor,
-])
+
+@pytest.mark.parametrize(
+    "processor_class",
+    [
+        processors.UserExcelProcessor,
+        processors.PacienteExcelProcessor,
+        processors.CamaExcelProcessor,
+        processors.EpisodioExcelProcessor,
+        processors.GestionExcelProcessor,
+        processors.PacienteEpisodioExcelProcessor,
+    ],
+)
 def test_validar_estructura_invalida(processor_class, archivo_mock):
     """Debe agregar error cuando faltan columnas requeridas"""
     p = processor_class(archivo_mock)
@@ -767,16 +773,20 @@ def test_validar_estructura_invalida(processor_class, archivo_mock):
 # 2️⃣ _convertir_fecha con formato americano mm/dd/yyyy
 # ---------------------------------------------------
 
+
 def test_convertir_fecha_formato_americano():
     """Cubre el formato mm/dd/yyyy y mm/dd/yy"""
     p = processors.GestionExcelProcessor(MagicMock())
     assert p._convertir_fecha("12/31/2023") == p._convertir_fecha("31/12/2023")
-    assert isinstance(p._convertir_fecha("01/01/24"), type(p._convertir_fecha("2024-01-01")))
+    assert isinstance(
+        p._convertir_fecha("01/01/24"), type(p._convertir_fecha("2024-01-01"))
+    )
 
 
 # ---------------------------------------------------
 # 3️⃣ _convertir_fecha con tipo no soportado
 # ---------------------------------------------------
+
 
 def test_convertir_fecha_tipo_invalido():
     """Debe lanzar ValueError con tipo no soportado (lista, dict, etc.)"""
@@ -790,6 +800,7 @@ def test_convertir_fecha_tipo_invalido():
 # ---------------------------------------------------
 # 4️⃣ _validar_rut con largo incorrecto
 # ---------------------------------------------------
+
 
 def test_validar_rut_largo_incorrecto():
     """Cubre RUTs demasiado cortos o largos"""

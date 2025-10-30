@@ -72,7 +72,9 @@ class DatabaseImporterEpisodioTest(TestCase):
 
         self.importer._import_episodios(episodios_data)
 
-        episodio = Episodio.objects.get(episodio_cmbd=self.existing_episodio.episodio_cmbd)
+        episodio = Episodio.objects.get(
+            episodio_cmbd=self.existing_episodio.episodio_cmbd
+        )
         self.assertEqual(episodio.fecha_egreso, nueva_fecha_egreso)
         self.assertEqual(self.importer.results["episodios"]["created"], 0)
         self.assertEqual(self.importer.results["episodios"]["updated"], 1)
@@ -92,4 +94,6 @@ class DatabaseImporterEpisodioTest(TestCase):
         self.importer._import_episodios(episodios_data)
 
         self.assertEqual(self.importer.results["episodios"]["errors"], 1)
-        self.assertIn("No se encontró paciente para episodio 3", self.importer.error_details)
+        self.assertIn(
+            "No se encontró paciente para episodio 3", self.importer.error_details
+        )

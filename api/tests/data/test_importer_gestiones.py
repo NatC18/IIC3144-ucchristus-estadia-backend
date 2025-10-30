@@ -9,6 +9,7 @@ from api.models import Cama, Episodio, Gestion, Paciente
 
 User = get_user_model()
 
+
 class DatabaseImporterGestionTest(TestCase):
     """Tests de importación de gestiones usando DatabaseImporter"""
 

@@ -1,7 +1,9 @@
-import pytest
 import json
+from unittest.mock import MagicMock, patch
+
+import pytest
 from django.http import JsonResponse
-from unittest.mock import patch, MagicMock
+
 from api.views.health import health_check
 
 
