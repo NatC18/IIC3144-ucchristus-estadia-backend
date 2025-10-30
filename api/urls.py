@@ -17,6 +17,7 @@ from api.views.archivo_views import (
 from api.views.auth import (
     CustomTokenObtainPairView,
     change_password,
+    list_enfermeros,
     logout,
     profile,
     register,
@@ -51,6 +52,7 @@ urlpatterns = [
     path("auth/profile/update/", update_profile, name="auth_profile_update"),
     path("auth/change-password/", change_password, name="auth_change_password"),
     path("auth/verify/", verify_token, name="auth_verify_token"),
+    path("auth/enfermeros/", list_enfermeros, name="auth_list_enfermeros"),
     # Health check para Render
     path("health/", health_check, name="health_check"),
     # Rutas principales para carga y procesamiento de archivos (Frontend)

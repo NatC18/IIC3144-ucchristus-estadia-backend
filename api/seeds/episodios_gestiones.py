@@ -109,11 +109,11 @@ def create_episodios_y_gestiones():
 
     # IMPORTANTE: Volver a consultar episodios desde la base de datos para asegurar que existen
     episodios_guardados = list(Episodio.objects.all())
-    medicos_disponibles = list(User.objects.filter(rol="MEDICO"))
+    enfermeros_disponibles = list(User.objects.filter(rol="ENFERMERO"))
 
     # Crear un índice por CMBD para evitar depender del orden
     epis_by_cmbd = {e.episodio_cmbd: e for e in episodios_guardados}
-    medico_default = medicos_disponibles[0] if medicos_disponibles else None
+    enfermero_default = enfermeros_disponibles[0] if enfermeros_disponibles else None
 
     # Crear gestiones solo si tenemos episodios realmente guardados
     if episodios_guardados and medicos_disponibles:
@@ -126,7 +126,7 @@ def create_episodios_y_gestiones():
             gestiones_data.append(
                 {
                     "episodio": epis_by_cmbd[100001],
-                    "usuario": medico_default,
+                    "usuario": enfermero_default,
                     "tipo_gestion": "HOMECARE_UCCC",
                     "estado_gestion": "EN_PROGRESO",
                     "fecha_inicio": timezone.now() - timedelta(days=2),
@@ -139,7 +139,7 @@ def create_episodios_y_gestiones():
             gestiones_data.append(
                 {
                     "episodio": epis_by_cmbd[100002],
-                    "usuario": medico_default,
+                    "usuario": enfermero_default,
                     "tipo_gestion": "COORDINACION_UCCC",
                     "estado_gestion": "COMPLETADA",
                     "fecha_inicio": timezone.now() - timedelta(days=1),
@@ -153,7 +153,7 @@ def create_episodios_y_gestiones():
             gestiones_data.append(
                 {
                     "episodio": epis_by_cmbd[100005],
-                    "usuario": medico_default,
+                    "usuario": enfermero_default,
                     "tipo_gestion": "TRASLADO",
                     "estado_gestion": "EN_PROGRESO",
                     "fecha_inicio": timezone.now() - timedelta(days=4),
