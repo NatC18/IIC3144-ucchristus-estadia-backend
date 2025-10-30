@@ -7,6 +7,8 @@ from django.utils import timezone
 from api.management.modules.db_importer import DatabaseImporter
 from api.models import Cama, Episodio, Gestion, Paciente
 
+from datetime import date
+
 User = get_user_model()
 
 class DatabaseImporterGestionTest(TestCase):

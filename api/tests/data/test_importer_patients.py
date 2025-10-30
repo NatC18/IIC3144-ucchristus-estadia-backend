@@ -4,6 +4,8 @@ from django.test import TestCase
 
 from api.management.modules.db_importer import DatabaseImporter
 from api.models import Paciente
+from unittest.mock import patch
+from django.core.exceptions import ValidationError
 
 
 class DatabaseImporterPacienteTest(TestCase):
@@ -98,3 +100,52 @@ class DatabaseImporterPacienteTest(TestCase):
         self.assertIn(
             "Paciente sin RUT", self.importer.error_details[0]
         )
+
+
+class DatabaseImporterPacienteErrorTest(TestCase):
+    """Tests de errores en importación de pacientes"""
+
+    def setUp(self):
+        self.importer = DatabaseImporter()
+
+    def test_validation_error(self):
+        """Debe registrar un error si Django lanza ValidationError"""
+        paciente_data = [
+            {
+                "rut": "12.345.678-9",
+                "nombre": "Paciente Inválido",
+                "sexo": "F",
+                "fecha_nacimiento": date(2000, 1, 1),
+                "prevision_1": "FONASA",
+                "episodio_cmbd": 1,
+            }
+        ]
+
+        # Forzamos que Paciente.objects.get_or_create lance ValidationError
+        with patch("api.models.Paciente.objects.get_or_create") as mock_get_or_create:
+            mock_get_or_create.side_effect = ValidationError("Validación forzada")
+            self.importer._import_pacientes(paciente_data)
+
+        self.assertEqual(self.importer.results["pacientes"]["errors"], 1)
+        self.assertIn("Error validación paciente", self.importer.error_details[0])
+
+    def test_generic_exception(self):
+        """Debe registrar un error si ocurre un Exception genérico"""
+        paciente_data = [
+            {
+                "rut": "12.345.678-9",
+                "nombre": "Paciente Excepción",
+                "sexo": "F",
+                "fecha_nacimiento": date(2000, 1, 1),
+                "prevision_1": "FONASA",
+                "episodio_cmbd": 1,
+            }
+        ]
+
+        # Forzamos un error genérico
+        with patch("api.models.Paciente.objects.get_or_create") as mock_get_or_create:
+            mock_get_or_create.side_effect = Exception("Error genérico forzado")
+            self.importer._import_pacientes(paciente_data)
+
+        self.assertEqual(self.importer.results["pacientes"]["errors"], 1)
+        self.assertIn("Error procesando paciente", self.importer.error_details[0])
