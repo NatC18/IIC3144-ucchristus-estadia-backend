@@ -11,6 +11,7 @@ omit =
     */wsgi.py
     */asgi.py
     */settings.py
+    */episodio_local_backup.py
 
 [report]
 exclude_lines =
