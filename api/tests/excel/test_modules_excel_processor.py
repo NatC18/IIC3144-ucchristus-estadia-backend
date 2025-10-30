@@ -1,13 +1,17 @@
+import logging
+from pathlib import Path
+
 import pandas as pd
 import pytest
-from pathlib import Path
+
 from api.management.modules.excel_processor import ExcelProcessor
-import logging
+
 
 @pytest.fixture
 def processor():
-  """Fixture simple para inicializar ExcelProcessor en todos los tests."""
-  return ExcelProcessor()
+    """Fixture simple para inicializar ExcelProcessor en todos los tests."""
+    return ExcelProcessor()
+
 
 @pytest.fixture
 def sample_excel_files(tmp_path):
@@ -201,7 +205,9 @@ def test_prepare_data_for_models_without_combined():
 # --- 🔹 Proceso completo de archivos locales ---
 def test_process_local_files(sample_excel_files):
     processor = ExcelProcessor()
-    result = processor.process_local_files({k: str(v) for k, v in sample_excel_files.items()})
+    result = processor.process_local_files(
+        {k: str(v) for k, v in sample_excel_files.items()}
+    )
     assert "excel1" in result
     assert "combined" in result
     assert len(result["combined"]) > 0
@@ -228,183 +234,176 @@ def test_load_excel_with_exception(monkeypatch, tmp_path):
     result = processor._load_single_excel(bad_path, "excel1")
     assert result is None
 
+
 def test_combine_data_empty_dataframes(monkeypatch):
-  processor = ExcelProcessor()
-  processor.excel1_df = pd.DataFrame()
-  processor.excel2_df = pd.DataFrame()
-  processor.excel3_df = pd.DataFrame()
-  assert processor.combine_data() is False
+    processor = ExcelProcessor()
+    processor.excel1_df = pd.DataFrame()
+    processor.excel2_df = pd.DataFrame()
+    processor.excel3_df = pd.DataFrame()
+    assert processor.combine_data() is False
 
 
 def test_load_single_excel_file_not_found(tmp_path):
-  processor = ExcelProcessor()
-  fake_path = tmp_path / "missing.xlsx"
-  result = processor._load_single_excel(fake_path, "excel1")
-  assert result is None
+    processor = ExcelProcessor()
+    fake_path = tmp_path / "missing.xlsx"
+    result = processor._load_single_excel(fake_path, "excel1")
+    assert result is None
 
 
 def test_clean_episodio_data_with_no_column():
-  df = pd.DataFrame({"otra_col": [1, 2, 3]})
-  processor = ExcelProcessor()
-  result = processor._clean_episodio_data(df, "test")
-  assert "episodio_cmbd" not in result.columns or len(result) == 0
+    df = pd.DataFrame({"otra_col": [1, 2, 3]})
+    processor = ExcelProcessor()
+    result = processor._clean_episodio_data(df, "test")
+    assert "episodio_cmbd" not in result.columns or len(result) == 0
 
 
 def test_export_combined_data_invalid_path(tmp_path):
-  processor = ExcelProcessor()
-  processor.combined_df = pd.DataFrame({"a": [1]})
-  bad_path = tmp_path / "no_dir" / "file.xlsx"
-  assert processor.export_combined_data(bad_path) is False
+    processor = ExcelProcessor()
+    processor.combined_df = pd.DataFrame({"a": [1]})
+    bad_path = tmp_path / "no_dir" / "file.xlsx"
+    assert processor.export_combined_data(bad_path) is False
 
 
 def test_get_data_summary_without_combined(monkeypatch):
-  processor = ExcelProcessor()
-  processor.excel1_df = pd.DataFrame({"episodio_cmbd": []})
-  processor.excel2_df = pd.DataFrame({"episodio_cmbd": []})
-  processor.excel3_df = pd.DataFrame({"episodio_cmbd": []})
+    processor = ExcelProcessor()
+    processor.excel1_df = pd.DataFrame({"episodio_cmbd": []})
+    processor.excel2_df = pd.DataFrame({"episodio_cmbd": []})
+    processor.excel3_df = pd.DataFrame({"episodio_cmbd": []})
 
-  summary = processor.get_data_summary()
-  assert isinstance(summary, dict)
-  expected_keys = {"row_counts", "column_counts", "files_loaded", "combined_stats"}
-  assert expected_keys.issubset(summary.keys())
-  assert all(v == 0 for v in summary["row_counts"].values())
-  assert all(summary["files_loaded"].values())
-
+    summary = processor.get_data_summary()
+    assert isinstance(summary, dict)
+    expected_keys = {"row_counts", "column_counts", "files_loaded", "combined_stats"}
+    assert expected_keys.issubset(summary.keys())
+    assert all(v == 0 for v in summary["row_counts"].values())
+    assert all(summary["files_loaded"].values())
 
 
 def test_logger_called_on_error(monkeypatch, caplog):
-  processor = ExcelProcessor()
+    processor = ExcelProcessor()
 
-  def bad_load_excel(*args, **kwargs):
-      raise Exception("error for test")
+    def bad_load_excel(*args, **kwargs):
+        raise Exception("error for test")
 
-  monkeypatch.setattr(processor, "_load_single_excel", bad_load_excel)
-  files = {"excel1": "fake1.xlsx", "excel2": "fake2.xlsx", "excel3": "fake3.xlsx"}
-  with caplog.at_level(logging.ERROR):
-      processor.load_excel_files(files)
-  assert "error for test" in caplog.text or "Faltan archivos" in caplog.text
+    monkeypatch.setattr(processor, "_load_single_excel", bad_load_excel)
+    files = {"excel1": "fake1.xlsx", "excel2": "fake2.xlsx", "excel3": "fake3.xlsx"}
+    with caplog.at_level(logging.ERROR):
+        processor.load_excel_files(files)
+    assert "error for test" in caplog.text or "Faltan archivos" in caplog.text
 
 
 def test_returns_false_when_excel1_fails(monkeypatch, processor):
-  """
-  Cubre el caso en que _load_single_excel devuelve None para excel1
-  → Debe retornar False inmediatamente.
-  """
-  calls = []
+    """
+    Cubre el caso en que _load_single_excel devuelve None para excel1
+    → Debe retornar False inmediatamente.
+    """
+    calls = []
 
-  def fake_loader(path, name):
-    calls.append(name)
-    return None if name == "excel1" else pd.DataFrame()
+    def fake_loader(path, name):
+        calls.append(name)
+        return None if name == "excel1" else pd.DataFrame()
 
-  monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
-  assert calls == ["excel1"]  # se corta antes de excel2
+    monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False
+    assert calls == ["excel1"]  # se corta antes de excel2
 
 
 def test_returns_false_when_excel2_fails(monkeypatch, processor):
-  """
-  Cubre el caso en que _load_single_excel devuelve None para excel2
-  → Debe retornar False después de leer excel1.
-  """
-  calls = []
+    """
+    Cubre el caso en que _load_single_excel devuelve None para excel2
+    → Debe retornar False después de leer excel1.
+    """
+    calls = []
 
-  def fake_loader(path, name):
-    calls.append(name)
-    if name == "excel2":
-      return None
-    return pd.DataFrame()
+    def fake_loader(path, name):
+        calls.append(name)
+        if name == "excel2":
+            return None
+        return pd.DataFrame()
 
-  monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
-  assert calls == ["excel1", "excel2"]
+    monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False
+    assert calls == ["excel1", "excel2"]
 
 
 def test_returns_false_when_excel3_fails(monkeypatch, processor):
-  """
-  Cubre el caso en que _load_single_excel devuelve None para excel3
-  → Debe retornar False al final de la secuencia.
-  """
-  calls = []
+    """
+    Cubre el caso en que _load_single_excel devuelve None para excel3
+    → Debe retornar False al final de la secuencia.
+    """
+    calls = []
 
-  def fake_loader(path, name):
-    calls.append(name)
-    if name == "excel3":
-      return None
-    return pd.DataFrame()
+    def fake_loader(path, name):
+        calls.append(name)
+        if name == "excel3":
+            return None
+        return pd.DataFrame()
 
-  monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
-  assert calls == ["excel1", "excel2", "excel3"]
+    monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False
+    assert calls == ["excel1", "excel2", "excel3"]
+
 
 # === 🔹 Casos extra: cobertura de try/except y retornos False ===
 
-def test_load_excel_files_exception_during_excel1(monkeypatch, processor):
-  """
-  Simula que _load_single_excel lanza excepción al leer excel1.
-  Cubre el bloque try/except inicial (líneas ~122–125).
-  """
-  def raise_on_excel1(path, name):
-    if name == "excel1":
-      raise ValueError("excel1 failed")
-    return pd.DataFrame()
 
-  monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel1)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
+def test_load_excel_files_exception_during_excel1(monkeypatch, processor):
+    """
+    Simula que _load_single_excel lanza excepción al leer excel1.
+    Cubre el bloque try/except inicial (líneas ~122–125).
+    """
+
+    def raise_on_excel1(path, name):
+        if name == "excel1":
+            raise ValueError("excel1 failed")
+        return pd.DataFrame()
+
+    monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel1)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False
 
 
 def test_load_excel_files_exception_during_excel2(monkeypatch, processor):
-  """
-  Simula que _load_single_excel lanza excepción al leer excel2.
-  Cubre el bloque try/except medio (líneas ~138).
-  """
-  def raise_on_excel2(path, name):
-    if name == "excel2":
-      raise ValueError("excel2 failed")
-    return pd.DataFrame()
+    """
+    Simula que _load_single_excel lanza excepción al leer excel2.
+    Cubre el bloque try/except medio (líneas ~138).
+    """
 
-  monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel2)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
+    def raise_on_excel2(path, name):
+        if name == "excel2":
+            raise ValueError("excel2 failed")
+        return pd.DataFrame()
+
+    monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel2)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False
 
 
 def test_load_excel_files_exception_during_excel3(monkeypatch, processor):
-  """
-  Simula que _load_single_excel lanza excepción al leer excel3.
-  Cubre el bloque try/except final del método.
-  """
-  def raise_on_excel3(path, name):
-    if name == "excel3":
-      raise ValueError("excel3 failed")
-    return pd.DataFrame()
+    """
+    Simula que _load_single_excel lanza excepción al leer excel3.
+    Cubre el bloque try/except final del método.
+    """
 
-  monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel3)
-  result = processor.load_excel_files({
-      "excel1": "mock1.xlsx",
-      "excel2": "mock2.xlsx",
-      "excel3": "mock3.xlsx"
-  })
-  assert result is False
+    def raise_on_excel3(path, name):
+        if name == "excel3":
+            raise ValueError("excel3 failed")
+        return pd.DataFrame()
+
+    monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel3)
+    result = processor.load_excel_files(
+        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+    )
+    assert result is False

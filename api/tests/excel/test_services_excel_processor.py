@@ -1,6 +1,7 @@
-import pytest
 import pandas as pd
+import pytest
 from django.core.exceptions import ValidationError
+
 from api.services.excel_processor import ExcelProcessor
 
 
@@ -151,7 +152,8 @@ def test_cargar_excel_raises(monkeypatch):
     a.archivo.path = "fake.xlsx"
     p = DummyProcessor(a)
 
-    def bad_read(*a_, **kw): raise ValueError("bad file")
+    def bad_read(*a_, **kw):
+        raise ValueError("bad file")
 
     monkeypatch.setattr(pd, "read_excel", bad_read)
     with pytest.raises(ValidationError):
@@ -164,10 +166,16 @@ def test_procesar_archivo_happy_path(monkeypatch):
     p = DummyProcessor(a)
 
     # simulamos flujo completo
-    monkeypatch.setattr(p, "_cargar_excel", lambda: setattr(p, "df", pd.DataFrame([{"ok": 1}])))
+    monkeypatch.setattr(
+        p, "_cargar_excel", lambda: setattr(p, "df", pd.DataFrame([{"ok": 1}]))
+    )
     monkeypatch.setattr(p, "_validar_estructura", lambda: True)
-    monkeypatch.setattr(p, "_procesar_filas", lambda: setattr(p, "registros_procesados", 1))
-    monkeypatch.setattr(p, "_finalizar_procesamiento", lambda: setattr(a, "estado", "FINAL"))
+    monkeypatch.setattr(
+        p, "_procesar_filas", lambda: setattr(p, "registros_procesados", 1)
+    )
+    monkeypatch.setattr(
+        p, "_finalizar_procesamiento", lambda: setattr(a, "estado", "FINAL")
+    )
     result = p.procesar_archivo()
     assert "filas_procesadas" in result
     assert result["estado"] == "FINAL"
@@ -178,7 +186,9 @@ def test_procesar_archivo_invalid_structure(monkeypatch):
     p = DummyProcessor(a)
     monkeypatch.setattr(p, "_cargar_excel", lambda: None)
     monkeypatch.setattr(p, "_validar_estructura", lambda: False)
-    monkeypatch.setattr(p, "_finalizar_procesamiento", lambda: setattr(a, "estado", "ERROR"))
+    monkeypatch.setattr(
+        p, "_finalizar_procesamiento", lambda: setattr(a, "estado", "ERROR")
+    )
     result = p.procesar_archivo()
     assert result["estado"] == "ERROR"
 
@@ -186,7 +196,9 @@ def test_procesar_archivo_invalid_structure(monkeypatch):
 def test_procesar_archivo_exception(monkeypatch):
     a = DummyArchivo()
     p = DummyProcessor(a)
-    monkeypatch.setattr(p, "_cargar_excel", lambda: (_ for _ in ()).throw(ValueError("boom")))
+    monkeypatch.setattr(
+        p, "_cargar_excel", lambda: (_ for _ in ()).throw(ValueError("boom"))
+    )
     result = p.procesar_archivo()
     assert result["estado"] == "ERROR"
     assert "boom" in result["error"]
