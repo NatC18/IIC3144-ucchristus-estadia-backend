@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from django.test import TestCase
 from django.utils import timezone
-from datetime import datetime
-from api.models import Paciente, Cama, Episodio, Gestion
+
 from api.management.modules.db_importer import DatabaseImporter
+from api.models import Cama, Episodio, Gestion, Paciente
 
 
 class DatabaseImporterAllDataTest(TestCase):

@@ -1,11 +1,11 @@
 from datetime import date
+from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from api.management.modules.db_importer import DatabaseImporter
 from api.models import Paciente
-from unittest.mock import patch
-from django.core.exceptions import ValidationError
 
 
 class DatabaseImporterPacienteTest(TestCase):
