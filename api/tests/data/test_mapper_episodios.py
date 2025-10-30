@@ -1,8 +1,11 @@
-import pytest
-import pandas as pd
 from datetime import datetime
 from unittest.mock import patch
+
+import pandas as pd
+import pytest
+
 from api.management.modules.data_mapper import DataMapper
+
 
 class TestDataMapperEpisodiosCombined:
     @pytest.fixture

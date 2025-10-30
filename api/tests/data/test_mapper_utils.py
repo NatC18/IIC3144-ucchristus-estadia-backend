@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from api.management.modules.data_mapper import DataMapper
+
 
 class TestDataMapperCleanRUT:
     @pytest.fixture

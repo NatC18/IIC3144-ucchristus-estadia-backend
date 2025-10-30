@@ -1,7 +1,10 @@
-import pytest
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
+import pytest
+
 from api.management.modules.data_mapper import DataMapper
+
 
 class TestDataMapperPacientesCombined:
     @pytest.fixture
