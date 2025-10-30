@@ -1,82 +1,95 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from django.test import TestCase
+from django.utils import timezone
+
 from api.management.modules.db_importer import DatabaseImporter
+from api.models import Cama, Episodio, Paciente
 
-@pytest.fixture
-def sample_episodio_data():
-    return [
-        {
-            "episodio_cmbd": 1,
-            "rut_paciente": "12345678-9",
-            "codigo_cama": "CAMA-001",
-            "habitacion": "101A",
-            "fecha_ingreso": datetime(2025, 10, 29, 10, 0),
-            "fecha_egreso": datetime(2025, 10, 30, 12, 0),
-            "tipo_actividad": "Hospitalización",
-            "especialidad": "Cardiología",
-        }
-    ]
 
-def test_import_episodios_creacion(sample_episodio_data):
-    importer = DatabaseImporter()
+class DatabaseImporterEpisodioTest(TestCase):
+    """Tests de importación de episodios usando DatabaseImporter"""
 
-    # Mock de pacientes
-    mock_paciente = MagicMock()
-    importer.episodio_to_paciente = {1: mock_paciente}
+    def setUp(self):
+        # Inicializar importador
+        self.importer = DatabaseImporter()
 
-    # Mock de camas
-    mock_cama = MagicMock()
-    with patch("api.management.modules.db_importer.DatabaseImporter._find_cama", return_value=mock_cama):
-        # Mock de Episodio.objects.get_or_create
-        with patch("api.models.Episodio.objects.get_or_create") as mock_get_or_create:
-            mock_episodio_instance = MagicMock()
-            mock_get_or_create.return_value = (mock_episodio_instance, True)  # True = creado
+        # Crear paciente y cama existentes
+        self.paciente = Paciente.objects.create(
+            rut="12.345.678-9",
+            nombre="Paciente Test",
+            sexo="F",
+            fecha_nacimiento=datetime(1990, 1, 1),
+            prevision_1="FONASA",
+        )
 
-            importer._import_episodios(sample_episodio_data)
+        self.cama = Cama.objects.create(
+            codigo_cama="CAMA-001",
+            habitacion="HAB-101",
+        )
 
-            # Comprobar que get_or_create se llamó con los valores correctos
-            mock_get_or_create.assert_called_once_with(
-                episodio_cmbd=1,
-                defaults={
-                    "paciente": mock_paciente,
-                    "cama": mock_cama,
-                    "fecha_ingreso": sample_episodio_data[0]["fecha_ingreso"],
-                    "fecha_egreso": sample_episodio_data[0]["fecha_egreso"],
-                    "tipo_actividad": "Hospitalización",
-                    "especialidad": "Cardiología",
-                    "inlier_outlier_flag": None,
-                    "estancia_prequirurgica": None,
-                    "estancia_postquirurgica": None,
-                    "estancia_norma_grd": None,
-                }
-            )
+        # Episodio existente
+        self.existing_episodio = Episodio.objects.create(
+            episodio_cmbd=1,
+            paciente=self.paciente,
+            cama=self.cama,
+            fecha_ingreso=timezone.now() - timedelta(days=5),
+        )
 
-            # Comprobar resultados internos
-            assert importer.results["episodios"]["created"] == 1
-            assert importer.results["episodios"]["updated"] == 0
-            assert importer.results["episodios"]["errors"] == 0
+    def test_crea_episodio_nuevo(self):
+        """Debe crear un episodio nuevo asociado a paciente y cama"""
 
-def test_import_episodios_actualizacion(sample_episodio_data):
-    importer = DatabaseImporter()
+        otra_cama = Cama.objects.create(codigo_cama="CAMA-002", habitacion="HAB-102")
 
-    mock_paciente = MagicMock()
-    importer.episodio_to_paciente = {1: mock_paciente}
-    mock_cama = MagicMock()
-    
-    with patch("api.management.modules.db_importer.DatabaseImporter._find_cama", return_value=mock_cama):
-        with patch("api.models.Episodio.objects.get_or_create") as mock_get_or_create:
-            # Simulamos episodio existente
-            mock_episodio_instance = MagicMock()
-            mock_episodio_instance.cama = None  # para probar actualización
-            mock_get_or_create.return_value = (mock_episodio_instance, False)  # False = existente
+        episodios_data = [
+            {
+                "episodio_cmbd": 2,
+                "rut_paciente": self.paciente.rut,
+                "codigo_cama": otra_cama.codigo_cama,
+                "fecha_ingreso": timezone.now(),
+                "tipo_actividad": "Hospitalización",
+            }
+        ]
 
-            importer._import_episodios(sample_episodio_data)
+        self.importer._import_episodios(episodios_data)
 
-            # Se debe llamar a save porque la cama era None
-            assert mock_episodio_instance.save.called
+        episodio = Episodio.objects.get(episodio_cmbd=2)
+        self.assertEqual(episodio.paciente, self.paciente)
+        self.assertEqual(episodio.cama, otra_cama)
+        self.assertEqual(self.importer.results["episodios"]["created"], 1)
+        self.assertEqual(self.importer.results["episodios"]["updated"], 0)
+        self.assertEqual(self.importer.results["episodios"]["errors"], 0)
 
-            # Comprobar resultados internos
-            assert importer.results["episodios"]["created"] == 0
-            assert importer.results["episodios"]["updated"] == 1
-            assert importer.results["episodios"]["errors"] == 0
+    def test_actualiza_episodio_existente(self):
+        """Debe actualizar el episodio existente con nueva fecha de egreso"""
+        nueva_fecha_egreso = timezone.now()
+        episodios_data = [
+            {
+                "episodio_cmbd": self.existing_episodio.episodio_cmbd,
+                "fecha_egreso": nueva_fecha_egreso,
+            }
+        ]
+
+        self.importer._import_episodios(episodios_data)
+
+        episodio = Episodio.objects.get(episodio_cmbd=self.existing_episodio.episodio_cmbd)
+        self.assertEqual(episodio.fecha_egreso, nueva_fecha_egreso)
+        self.assertEqual(self.importer.results["episodios"]["created"], 0)
+        self.assertEqual(self.importer.results["episodios"]["updated"], 1)
+        self.assertEqual(self.importer.results["episodios"]["errors"], 0)
+
+    def test_error_sin_paciente(self):
+        """Debe registrar error si no se encuentra paciente para el episodio"""
+        episodios_data = [
+            {
+                "episodio_cmbd": 3,
+                "rut_paciente": "99.999.999-9",  # Paciente inexistente
+                "codigo_cama": self.cama.codigo_cama,
+                "fecha_ingreso": timezone.now(),
+            }
+        ]
+
+        self.importer._import_episodios(episodios_data)
+
+        self.assertEqual(self.importer.results["episodios"]["errors"], 1)
+        self.assertIn("No se encontró paciente para episodio 3", self.importer.error_details)

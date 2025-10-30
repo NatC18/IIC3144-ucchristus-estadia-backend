@@ -1,49 +1,106 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.utils import timezone
+
 from api.management.modules.db_importer import DatabaseImporter
+from api.models import Cama, Episodio, Gestion, Paciente
 
-@pytest.fixture
-def sample_gestion_data():
-    return [
-        {
-            "episodio_cmbd": 1,
-            "usuario_email": "doctor@hospital.cl",
-            "tipo_gestion": "GESTION_CLINICA",
-            "estado_gestion": "INICIADA",
-            "fecha_inicio": datetime(2025, 10, 29, 12, 0),
-            "fecha_fin": datetime(2025, 10, 29, 14, 0),
-            "informe": "Informe de prueba",
-        }
-    ]
+User = get_user_model()
 
-def test_import_gestiones_creacion(sample_gestion_data):
-    importer = DatabaseImporter()
+class DatabaseImporterGestionTest(TestCase):
+    """Tests de importación de gestiones usando DatabaseImporter"""
 
-    # Mock de Episodio.objects.get
-    mock_episodio = MagicMock()
-    with patch("api.models.Episodio.objects.get", return_value=mock_episodio):
-        # Mock de User.objects.get
-        mock_usuario = MagicMock()
-        with patch("api.management.modules.db_importer.User.objects.get", return_value=mock_usuario):
-            # Mock de Gestion.objects.create
-            with patch("api.models.Gestion.objects.create") as mock_create:
-                mock_gestion_instance = MagicMock()
-                mock_create.return_value = mock_gestion_instance
+    def setUp(self):
+        # Inicializar importador
+        self.importer = DatabaseImporter()
 
-                importer._import_gestiones(sample_gestion_data)
+        # Crear paciente, cama y episodio existentes
+        self.paciente = Paciente.objects.create(
+            rut="12.345.678-9",
+            nombre="Paciente Test",
+            sexo="F",
+            fecha_nacimiento=datetime(1990, 1, 1),
+            prevision_1="FONASA",
+        )
 
-                # Comprobar que create se llamó con los valores correctos
-                mock_create.assert_called_once_with(
-                    episodio=mock_episodio,
-                    usuario=mock_usuario,
-                    tipo_gestion="GESTION_CLINICA",
-                    estado_gestion="INICIADA",
-                    fecha_inicio=sample_gestion_data[0]["fecha_inicio"],
-                    fecha_fin=sample_gestion_data[0]["fecha_fin"],
-                    informe="Informe de prueba"
-                )
+        self.cama = Cama.objects.create(
+            codigo_cama="CAMA-001",
+            habitacion="HAB-101",
+        )
 
-                # Comprobar resultados internos
-                assert importer.results["gestiones"]["created"] == 1
-                assert importer.results["gestiones"]["errors"] == 0
+        self.episodio = Episodio.objects.create(
+            episodio_cmbd=1,
+            paciente=self.paciente,
+            cama=self.cama,
+            fecha_ingreso=timezone.now() - timedelta(days=5),
+        )
+
+        # Crear usuario de prueba
+        self.usuario = User.objects.create_user(
+            email="usuario@test.com", password="password123"
+        )
+
+    def test_crea_gestion_nueva(self):
+        """Debe crear una gestión nueva asociada a un episodio existente"""
+        gestiones_data = [
+            {
+                "episodio_cmbd": self.episodio.episodio_cmbd,
+                "tipo_gestion": "CONTROL",
+                "estado_gestion": "INICIADA",
+                "fecha_inicio": timezone.now(),
+                "fecha_fin": None,
+                "usuario_email": self.usuario.email,
+                "informe": "Informe de prueba",
+            }
+        ]
+
+        self.importer._import_gestiones(gestiones_data)
+
+        gestion = Gestion.objects.get(episodio=self.episodio)
+        self.assertEqual(gestion.tipo_gestion, "CONTROL")
+        self.assertEqual(gestion.estado_gestion, "INICIADA")
+        self.assertEqual(gestion.informe, "Informe de prueba")
+        self.assertEqual(gestion.usuario, self.usuario)
+
+        self.assertEqual(self.importer.results["gestiones"]["created"], 1)
+        self.assertEqual(self.importer.results["gestiones"]["errors"], 0)
+
+    def test_error_gestion_sin_episodio(self):
+        """Debe registrar error si no se encuentra episodio para la gestión"""
+        gestiones_data = [
+            {
+                "episodio_cmbd": 9999,  # Episodio inexistente
+                "tipo_gestion": "CONTROL",
+                "estado_gestion": "INICIADA",
+            }
+        ]
+
+        self.importer._import_gestiones(gestiones_data)
+
+        self.assertEqual(self.importer.results["gestiones"]["created"], 0)
+        self.assertEqual(self.importer.results["gestiones"]["errors"], 1)
+        self.assertIn(
+            "No se encontró episodio 9999 para gestión", self.importer.error_details
+        )
+
+    def test_crea_gestion_sin_usuario(self):
+        """Debe crear gestión aunque no se especifique usuario"""
+        gestiones_data = [
+            {
+                "episodio_cmbd": self.episodio.episodio_cmbd,
+                "tipo_gestion": "ADMINISTRATIVA",
+                "estado_gestion": "INICIADA",
+                "fecha_inicio": timezone.now(),
+            }
+        ]
+
+        self.importer._import_gestiones(gestiones_data)
+
+        gestion = Gestion.objects.get(
+            episodio=self.episodio, tipo_gestion="ADMINISTRATIVA"
+        )
+        self.assertIsNone(gestion.usuario)
+        self.assertEqual(self.importer.results["gestiones"]["created"], 1)
+        self.assertEqual(self.importer.results["gestiones"]["errors"], 0)
