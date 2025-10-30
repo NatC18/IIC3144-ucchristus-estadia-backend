@@ -52,7 +52,9 @@ class GestionUpdateSerializerValidateTest(TestCase):
             "estado_gestion": "COMPLETADA",
         }
 
-        serializer = GestionUpdateSerializer(instance=self.gestion, data=data, partial=True)
+        serializer = GestionUpdateSerializer(
+            instance=self.gestion, data=data, partial=True
+        )
         self.assertFalse(serializer.is_valid())
         self.assertIn("fecha_fin", serializer.errors)
         self.assertEqual(
@@ -67,7 +69,9 @@ class GestionUpdateSerializerValidateTest(TestCase):
             "fecha_fin": None,
         }
 
-        serializer = GestionUpdateSerializer(instance=self.gestion, data=data, partial=True)
+        serializer = GestionUpdateSerializer(
+            instance=self.gestion, data=data, partial=True
+        )
         self.assertFalse(serializer.is_valid())
         self.assertIn("fecha_fin", serializer.errors)
         self.assertEqual(
@@ -83,7 +87,9 @@ class GestionUpdateSerializerValidateTest(TestCase):
             "informe": "Traslado completado correctamente.",
         }
 
-        serializer = GestionUpdateSerializer(instance=self.gestion, data=data, partial=True)
+        serializer = GestionUpdateSerializer(
+            instance=self.gestion, data=data, partial=True
+        )
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
         gestion_actualizada = serializer.save()

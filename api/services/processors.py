@@ -723,3 +723,87 @@ ExcelProcessor._validar_rut = lambda self, rut: GestionExcelProcessor._validar_r
 ExcelProcessor._convertir_fecha = (
     lambda self, fecha: GestionExcelProcessor._convertir_fecha(self, fecha)
 )
+
+# ==========================================================================================
+# 🧩 TESTS ADICIONALES - Cobertura de estructura y casos borde (procesors.py)
+# ==========================================================================================
+
+from unittest.mock import MagicMock
+
+import pandas as pd
+import pytest
+
+from api.services import processors
+
+
+@pytest.fixture
+def archivo_mock():
+    mock = MagicMock()
+    mock.agregar_error = MagicMock()
+    return mock
+
+
+# ---------------------------------------------------
+# 1️⃣ Estructura inválida en todos los procesadores
+# ---------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "processor_class",
+    [
+        processors.UserExcelProcessor,
+        processors.PacienteExcelProcessor,
+        processors.CamaExcelProcessor,
+        processors.EpisodioExcelProcessor,
+        processors.GestionExcelProcessor,
+        processors.PacienteEpisodioExcelProcessor,
+    ],
+)
+def test_validar_estructura_invalida(processor_class, archivo_mock):
+    """Debe agregar error cuando faltan columnas requeridas"""
+    p = processor_class(archivo_mock)
+    # DataFrame vacío sin columnas
+    p.df = pd.DataFrame()
+    result = p._validar_estructura()
+    assert result is False
+    archivo_mock.agregar_error.assert_called_once()
+
+
+# ---------------------------------------------------
+# 2️⃣ _convertir_fecha con formato americano mm/dd/yyyy
+# ---------------------------------------------------
+
+
+def test_convertir_fecha_formato_americano():
+    """Cubre el formato mm/dd/yyyy y mm/dd/yy"""
+    p = processors.GestionExcelProcessor(MagicMock())
+    assert p._convertir_fecha("12/31/2023") == p._convertir_fecha("31/12/2023")
+    assert isinstance(
+        p._convertir_fecha("01/01/24"), type(p._convertir_fecha("2024-01-01"))
+    )
+
+
+# ---------------------------------------------------
+# 3️⃣ _convertir_fecha con tipo no soportado
+# ---------------------------------------------------
+
+
+def test_convertir_fecha_tipo_invalido():
+    """Debe lanzar ValueError con tipo no soportado (lista, dict, etc.)"""
+    p = processors.GestionExcelProcessor(MagicMock())
+    with pytest.raises(ValueError):
+        p._convertir_fecha(["2024-01-01"])
+    with pytest.raises(ValueError):
+        p._convertir_fecha({"fecha": "2024-01-01"})
+
+
+# ---------------------------------------------------
+# 4️⃣ _validar_rut con largo incorrecto
+# ---------------------------------------------------
+
+
+def test_validar_rut_largo_incorrecto():
+    """Cubre RUTs demasiado cortos o largos"""
+    p = processors.GestionExcelProcessor(MagicMock())
+    assert not p._validar_rut("12345")
+    assert not p._validar_rut("1234567899999")

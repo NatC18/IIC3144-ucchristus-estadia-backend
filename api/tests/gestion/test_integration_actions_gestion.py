@@ -29,12 +29,12 @@ class GestionActionsIntegrationTest(AuthenticatedAPITestCase):
         self.episodio1 = Episodio.objects.create(
             paciente=self.paciente,
             episodio_cmbd=1,
-            fecha_ingreso=timezone.now() - timedelta(days=5)
+            fecha_ingreso=timezone.now() - timedelta(days=5),
         )
         self.episodio2 = Episodio.objects.create(
             paciente=self.paciente,
             episodio_cmbd=2,
-            fecha_ingreso=timezone.now() - timedelta(days=2)
+            fecha_ingreso=timezone.now() - timedelta(days=2),
         )
 
         # Crear gestiones con distintos estados y tipos
@@ -43,14 +43,14 @@ class GestionActionsIntegrationTest(AuthenticatedAPITestCase):
             usuario=self.usuario,
             tipo_gestion="GESTION_CLINICA",
             estado_gestion="INICIADA",
-            fecha_inicio=timezone.now() - timedelta(days=4)
+            fecha_inicio=timezone.now() - timedelta(days=4),
         )
         self.gestion_progreso = Gestion.objects.create(
             episodio=self.episodio1,
             usuario=self.usuario,
             tipo_gestion="TRASLADO",
             estado_gestion="EN_PROGRESO",
-            fecha_inicio=timezone.now() - timedelta(days=3)
+            fecha_inicio=timezone.now() - timedelta(days=3),
         )
         self.gestion_completada = Gestion.objects.create(
             episodio=self.episodio2,
@@ -58,7 +58,7 @@ class GestionActionsIntegrationTest(AuthenticatedAPITestCase):
             tipo_gestion="GESTION_CLINICA",
             estado_gestion="COMPLETADA",
             fecha_inicio=timezone.now() - timedelta(days=2),
-            fecha_fin=timezone.now() - timedelta(days=1)
+            fecha_fin=timezone.now() - timedelta(days=1),
         )
 
     def test_pendientes(self):
@@ -69,7 +69,7 @@ class GestionActionsIntegrationTest(AuthenticatedAPITestCase):
 
         for g in response.data:
             self.assertIn(g["estado_gestion"], {"INICIADA", "EN_PROGRESO"})
-            
+
         self.assertEqual(len(response.data), 2)
 
     def test_estadisticas(self):
@@ -87,7 +87,9 @@ class GestionActionsIntegrationTest(AuthenticatedAPITestCase):
         self.assertEqual(data["total_gestiones"], 3)
 
         # Verificar que los contadores por estado sean correctos
-        estado_map = {item["estado_gestion"]: item["cantidad"] for item in data["por_estado"]}
+        estado_map = {
+            item["estado_gestion"]: item["cantidad"] for item in data["por_estado"]
+        }
         self.assertEqual(estado_map.get("INICIADA", 0), 1)
         self.assertEqual(estado_map.get("EN_PROGRESO", 0), 1)
         self.assertEqual(estado_map.get("COMPLETADA", 0), 1)

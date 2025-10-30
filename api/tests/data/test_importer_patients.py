@@ -97,9 +97,7 @@ class DatabaseImporterPacienteTest(TestCase):
 
         # Debe aumentar contador de errores
         self.assertEqual(self.importer.results["pacientes"]["errors"], 1)
-        self.assertIn(
-            "Paciente sin RUT", self.importer.error_details[0]
-        )
+        self.assertIn("Paciente sin RUT", self.importer.error_details[0])
 
 
 class DatabaseImporterPacienteErrorTest(TestCase):

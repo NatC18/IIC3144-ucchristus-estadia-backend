@@ -43,7 +43,9 @@ class DatabaseImporterTransferenciaTest(TestCase):
 
         self.importer._import_transferencias(transferencias_data)
 
-        gestion = Gestion.objects.get(episodio=self.episodio, tipo_gestion="TRANSFERENCIA")
+        gestion = Gestion.objects.get(
+            episodio=self.episodio, tipo_gestion="TRANSFERENCIA"
+        )
         transferencia = Transferencia.objects.get(gestion=gestion)
 
         self.assertEqual(transferencia.estado, "PENDIENTE")
@@ -61,7 +63,7 @@ class DatabaseImporterTransferenciaTest(TestCase):
             episodio=self.episodio,
             tipo_gestion="TRANSFERENCIA",
             estado_gestion="INICIADA",
-            fecha_inicio=timezone.now()
+            fecha_inicio=timezone.now(),
         )
         transferencia = Transferencia.objects.create(
             gestion=gestion,
@@ -101,4 +103,7 @@ class DatabaseImporterTransferenciaTest(TestCase):
         self.importer._import_transferencias(transferencias_data)
 
         self.assertEqual(self.importer.results["transferencias"]["errors"], 1)
-        self.assertIn("No se encontró episodio 999 para transferencia", self.importer.error_details)
+        self.assertIn(
+            "No se encontró episodio 999 para transferencia",
+            self.importer.error_details,
+        )
