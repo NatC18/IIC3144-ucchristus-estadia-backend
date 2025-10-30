@@ -1,9 +1,10 @@
-from datetime import timedelta, date
+from datetime import date, timedelta
+
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from api.models import Episodio, Paciente, User, Gestion
+from api.models import Episodio, Gestion, Paciente, User
 from api.serializers.gestion import GestionUpdateSerializer
 
 

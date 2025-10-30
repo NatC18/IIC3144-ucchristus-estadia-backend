@@ -1,9 +1,10 @@
 from datetime import date, timedelta
-from django.utils import timezone
+
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
-from api.models import Gestion, Episodio, Paciente, User
+from api.models import Episodio, Gestion, Paciente, User
 from api.tests.base_test import AuthenticatedAPITestCase
 
 
