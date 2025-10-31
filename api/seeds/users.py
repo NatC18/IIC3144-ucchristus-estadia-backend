@@ -81,14 +81,14 @@ def create_users():
         },
         {
             "email": "enf.rivera@ucchristus.cl",
-            "rut": "18.567.890-1",
+            "rut": "18.567.890-3",
             "nombre": "Tiana",
             "apellido": "Rivera",
             "rol": "ENFERMERO",
         },
         {
             "email": "enf.munic@ucchristus.cl",
-            "rut": "18.567.890-1",
+            "rut": "18.567.890-2",
             "nombre": "Paolo",
             "apellido": "Munic",
             "rol": "ENFERMERO",
