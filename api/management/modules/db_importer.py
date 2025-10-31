@@ -576,12 +576,10 @@ class DatabaseImporter:
                 # Buscar o crear gestión asociada
                 gestion, gestion_created = Gestion.objects.get_or_create(
                     episodio=episodio,
-                    tipo="TRANSFERENCIA",
+                    tipo_gestion="TRANSFERENCIA",
                     defaults={
-                        "descripcion": "Gestión de transferencia generada automáticamente",
-                        "estado": "INICIADA",
-                        "prioridad": "MEDIA",
-                        "fecha_solicitud": transferencia_data.get("fecha_solicitud"),
+                        "episodio": episodio,
+                        "fecha_inicio": transferencia_data.get("fecha_solicitud"),
                     },
                 )
 

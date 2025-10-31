@@ -28,6 +28,8 @@ gunicorn==23.0.0
 
 # Para testing
 pytest==8.3.4
+pytest-cov==4.1.0
+coverage==7.3.2
 
 # Para procesamiento de archivos Excel
 pandas==2.2.3
