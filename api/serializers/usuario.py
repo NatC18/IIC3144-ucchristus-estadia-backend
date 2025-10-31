@@ -27,6 +27,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+
 class UsuarioListSerializer(serializers.ModelSerializer):
     """
     Serializer optimizado para listas de usuarios
@@ -44,6 +45,7 @@ class UsuarioListSerializer(serializers.ModelSerializer):
             "is_active",
         )
         read_only_fields = ["id"]
+
 
 class UsuarioCreateSerializer(serializers.ModelSerializer):
     """

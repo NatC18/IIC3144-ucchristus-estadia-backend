@@ -18,7 +18,6 @@ from ..serializers.auth import (
 )
 from ..serializers.usuario import UsuarioListSerializer
 
-
 User = get_user_model()
 
 
@@ -247,8 +246,8 @@ def list_enfermeros(request):
     """
     # Obtener todos los usuarios con rol ENFERMERO
     enfermeros = User.objects.filter(rol="ENFERMERO")
-    
+
     # Serializar datos
     serializer = UsuarioListSerializer(enfermeros, many=True)
-    
+
     return Response(serializer.data, status=status.HTTP_200_OK)
