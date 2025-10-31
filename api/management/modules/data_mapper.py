@@ -324,7 +324,9 @@ class DataMapper:
                     "Corte Cuentas": "CORTE_CUENTAS",
                 }
 
-                tipo_gestion = tipo_gestion_mapping.get(str(tipo_gestion_raw).lower(), "")
+                tipo_gestion = tipo_gestion_mapping.get(
+                    str(tipo_gestion_raw).lower(), ""
+                )
 
                 # Usar fecha de admisión como fecha_inicio
                 fecha_inicio = self._parse_date_universal(

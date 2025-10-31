@@ -11,9 +11,14 @@ class TestDataMapperGestionesCombined:
     def sample_combined_df(self):
         data = {
             "CÓDIGO EPISODIO CMBD": [101, 102, 103, 104],
-            "¿Qué gestión se solicito?": ["Homecare", "Transferencia", "Cobertura", None],
+            "¿Qué gestión se solicito?": [
+                "Homecare",
+                "Transferencia",
+                "Cobertura",
+                None,
+            ],
             "Fecha admisión": ["01/01/2025", "05/01/2025", None, "10/01/2025"],
-            "Informe": ["Informe 1", "", None, "Informe 4"]
+            "Informe": ["Informe 1", "", None, "Informe 4"],
         }
         df = pd.DataFrame(data)
         return df
@@ -23,6 +28,7 @@ class TestDataMapperGestionesCombined:
 
         # Mock de timezone.now para pruebas consistentes
         import django.utils.timezone as timezone
+
         fixed_now = datetime(2025, 1, 20, 12, 0, 0)
         monkeypatch.setattr(timezone, "now", lambda: fixed_now)
 
@@ -59,7 +65,7 @@ class TestDataMapperGestionesCombined:
             "CÓDIGO EPISODIO CMBD": [101, 102],
             "¿Qué gestión se solicito?": ["Transferencia", "homecare"],
             "Fecha admisión": ["01/01/2025", "02/01/2025"],
-            "Informe": ["Inf1", "Inf2"]
+            "Informe": ["Inf1", "Inf2"],
         }
         df = pd.DataFrame(data)
         mapper = DataMapper()
@@ -80,7 +86,11 @@ class TestDataMapperGestiones:
             "fecha_inicio": ["01/01/2025", "02/01/2025", "03/01/2025"],
             "fecha_fin": ["05/01/2025", None, "07/01/2025"],
             "observaciones": ["Obs1", "Obs2", "Obs3"],
-            "usuario_responsable": ["user1@test.com", "user2@test.com", "user3@test.com"],
+            "usuario_responsable": [
+                "user1@test.com",
+                "user2@test.com",
+                "user3@test.com",
+            ],
             "valor_gestion": [100.0, None, 200.0],
         }
         return pd.DataFrame(data)

@@ -12,7 +12,11 @@ class TestDataMapperPacientesCombined:
         # Simula un DataFrame combinado
         data = {
             "RUT": ["11.111.111-1", "22.222.222-2", None],
-            "Nombre": ["María González Pérez", "Carlos Martínez Silva", "Paciente Sin RUT"],
+            "Nombre": [
+                "María González Pérez",
+                "Carlos Martínez Silva",
+                "Paciente Sin RUT",
+            ],
             "Sexo  (Desc)": ["Femenino", "Masculino", "F"],
             "Fecha de Nacimiento": ["15/05/1980", "22/08/1975", "01/01/1990"],
             "Convenio": ["FONASA", "ISAPRE", "FONASA"],
