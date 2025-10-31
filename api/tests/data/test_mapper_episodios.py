@@ -18,11 +18,16 @@ class TestDataMapperEpisodiosCombined:
             "Fecha alta": ["03/01/2025", None, "15/01/2025", "20/01/2025"],
             "Tipo Actividad": ["Cirugía", "Hospitalización", "Ambulatorio", "Urgencia"],
             "Estancia Inlier / Outlier": ["Inlier", "Outlier", None, "Inlier"],
-            "Especialidad médica de la intervención (des)": ["Cardiología", "Traumatología", "Pediatría", None],
+            "Especialidad médica de la intervención (des)": [
+                "Cardiología",
+                "Traumatología",
+                "Pediatría",
+                None,
+            ],
             "Estancias Prequirurgicas Int  -Episodio-": [1.0, 0.0, 2.5, None],
             "Estancias Postquirurgicas Int  -Episodio-": [2.0, 1.5, None, 3.0],
             "Estancia Norma GRD": [3.0, 4.0, 2.0, None],
-            "CAMA": ["C001", "C002", "C003", "C004"]
+            "CAMA": ["C001", "C002", "C003", "C004"],
         }
         df = pd.DataFrame(data)
         return df
@@ -68,7 +73,11 @@ class TestDataMapperEpisodiosMapper:
             "episodio_cmbd": [101, 102, None],
             "rut": ["11.111.111-1", "22.222.222-2", "33.333.333-3"],
             "nombre": ["María", "Carlos", "Test"],
-            "fecha_ingreso": ["01/01/2025", None, "10/01/2025"],  # La segunda fila sin fecha
+            "fecha_ingreso": [
+                "01/01/2025",
+                None,
+                "10/01/2025",
+            ],  # La segunda fila sin fecha
             "fecha_alta": ["03/01/2025", "07/01/2025", None],
             "tipo_actividad": [None, "Cirugía", None],
             "servicio": ["Cardio", "Trauma", "Pediatría"],

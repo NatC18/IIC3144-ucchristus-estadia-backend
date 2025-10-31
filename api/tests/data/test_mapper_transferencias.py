@@ -19,7 +19,7 @@ class TestDataMapperTransferenciasCombined:
             "Motivo de traslado": ["Cambio de piso", None, "Motivo X"],
             "Centro de Destinatario": ["Hospital A", None, "Hospital B"],
             "Fecha admisión": ["01/01/2025", "02/01/2025", "03/01/2025"],
-            "Tipo de Solicitud": ["Urgente", "Normal", "Normal"]
+            "Tipo de Solicitud": ["Urgente", "Normal", "Normal"],
         }
         df = pd.DataFrame(data)
         return df
@@ -32,7 +32,7 @@ class TestDataMapperTransferenciasCombined:
         # Debe mapear solo las filas que sean transferencia
         # Atención: la tercera fila tiene "TRANSFERENCIA" en mayúsculas, según tu método actual se ignoraría
         # Para que el test pase tal cual tu método actual, solo mapea la primera fila
-        assert len(transferencias) == 1  
+        assert len(transferencias) == 1
 
         t1 = transferencias[0]
         assert t1["episodio_cmbd"] == 101

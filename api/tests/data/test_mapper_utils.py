@@ -13,11 +13,11 @@ class TestDataMapperCleanRUT:
     @pytest.mark.parametrize(
         "input_rut,expected",
         [
-            ("11111111-1", "11.111.111-1"),        # sin puntos ni guión
-            ("11a111b111-1", "11.111.111-1"),      # caracteres extraños
-            ("1111111-8", "1.111.111-8"),          # demasiado corto pero entra a formato
-            ("11.111.111-1", "11.111.111-1"),      # ya formateado
-        ]
+            ("11111111-1", "11.111.111-1"),  # sin puntos ni guión
+            ("11a111b111-1", "11.111.111-1"),  # caracteres extraños
+            ("1111111-8", "1.111.111-8"),  # demasiado corto pero entra a formato
+            ("11.111.111-1", "11.111.111-1"),  # ya formateado
+        ],
     )
     def test_clean_rut_with_re(self, mapper, input_rut, expected):
         # Forzar que _validate_rut_format devuelva False para entrar al bloque re
