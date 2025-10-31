@@ -16,6 +16,7 @@ from ..serializers.auth import (
     UserProfileSerializer,
     UserRegistrationSerializer,
 )
+from ..serializers.usuario import UsuarioListSerializer
 
 User = get_user_model()
 
@@ -219,3 +220,34 @@ def verify_token(request):
     """
     serializer = UserProfileSerializer(request.user)
     return Response({"valid": True, "user": serializer.data}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_enfermeros(request):
+    """
+    Endpoint para obtener la lista de todos los usuarios con rol ENFERMERO
+    GET /api/auth/enfermeros/
+
+    Headers:
+    Authorization: Bearer <access_token>
+
+    Response:
+    [
+        {
+            "id": "uuid",
+            "nombre": "Carmen",
+            "apellido": "Silva",
+            "email": "enf.silva@ucchristus.cl",
+            "rol": "ENFERMERO"
+        },
+        ...
+    ]
+    """
+    # Obtener todos los usuarios con rol ENFERMERO
+    enfermeros = User.objects.filter(rol="ENFERMERO")
+
+    # Serializar datos
+    serializer = UsuarioListSerializer(enfermeros, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

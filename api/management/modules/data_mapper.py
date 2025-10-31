@@ -315,16 +315,18 @@ class DataMapper:
 
                 # Mapear tipos de gestión a los valores del modelo
                 tipo_gestion_mapping = {
-                    "Homecare UCCC": "HOMECARE_UCCC",
-                    "Homecare": "HOMECARE",
-                    "Traslado": "TRASLADO",
-                    "Activación Beneficio Isapre": "ACTIVACION_BENEFICIO_ISAPRE",
-                    "Autorización Procedimiento": "AUTORIZACION_PROCEDIMIENTO",
-                    "Cobertura": "COBERTURA",
+                    "homecare uccc": "HOMECARE_UCCC",
+                    "homecare": "HOMECARE",
+                    "traslado": "TRASLADO",
+                    "activación beneficio isapre": "ACTIVACION_BENEFICIO_ISAPRE",
+                    "autorización procedimiento": "AUTORIZACION_PROCEDIMIENTO",
+                    "cobertura": "COBERTURA",
                     "Corte Cuentas": "CORTE_CUENTAS",
                 }
 
-                tipo_gestion = tipo_gestion_mapping.get(str(tipo_gestion_raw), "")
+                tipo_gestion = tipo_gestion_mapping.get(
+                    str(tipo_gestion_raw).lower(), ""
+                )
 
                 # Usar fecha de admisión como fecha_inicio
                 fecha_inicio = self._parse_date_universal(

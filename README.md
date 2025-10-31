@@ -52,8 +52,10 @@ docker compose exec web bash
 
 # Verificar linting
 bash check-linting.sh
-```
 
+# Correr tests coverage
+docker-compose run --rm web ./run-tests.sh
+```
 ## 🏥 Tecnologías
 
 - Django 5.2.7
