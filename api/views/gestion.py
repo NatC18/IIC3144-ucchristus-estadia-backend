@@ -148,37 +148,3 @@ class GestionViewSet(viewsets.ModelViewSet):
             )
 
         return Response(data)
-
-    @action(detail=False, methods=["get"])
-    def conteo_estados(self, request):
-        """
-        Retorna el total de gestiones y la cantidad por estado
-        GET /api/gestiones/conteo_estados/
-
-        Response:
-        {
-            "total": 150,
-            "por_estado": {
-                "INICIADA": 45,
-                "EN_PROGRESO": 30,
-                "COMPLETADA": 60,
-                "CANCELADA": 15
-            }
-        }
-        """
-        queryset = self.get_queryset()
-        total = queryset.count()
-
-        # Contar por cada estado
-        conteo_por_estado = {}
-        for estado_code, estado_label in Gestion.ESTADO_CHOICES:
-            count = queryset.filter(estado_gestion=estado_code).count()
-            conteo_por_estado[estado_code] = count
-
-        return Response(
-            {
-                "total": total,
-                "por_estado": conteo_por_estado,
-            }
-        )
-
