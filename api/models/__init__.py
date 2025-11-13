@@ -5,7 +5,6 @@ from .episodioServicio import EpisodioServicio
 from .gestion import Gestion
 from .paciente import Paciente
 from .servicio import Servicio
-from .transferencia import Transferencia
 from .usuario import User
 
 __all__ = [
@@ -17,5 +16,4 @@ __all__ = [
     "Cama",
     "Servicio",
     "EpisodioServicio",
-    "Transferencia",
 ]

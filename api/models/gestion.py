@@ -44,6 +44,40 @@ class Gestion(models.Model):
         ("GESTION_CLINICA", "Gestión Clínica"),
     ]
 
+    # Opciones para traslado
+    ESTADO_TRASLADO_CHOICES = [
+        ("ACEPTADO", "Aceptado"),
+        ("CANCELADO", "Cancelado"),
+        ("COMPLETADO", "Completado"),
+        ("PENDIENTE", "Pendiente"),
+        ("RECHAZADO", "Rechazado"),
+    ]
+
+    TIPO_TRASLADO_CHOICES = [
+        ("SALUD_MENTAL", "Salud Mental"),
+        ("URGENCIA", "Urgencia"),
+        ("HOSPITALIZADO_EXTERNO", "Hospitalizado Externo (Non UC)"),
+        ("HOSPITALIZADO_INTERNO", "Hospitalizado Interno (UC)"),
+    ]
+
+    NIVEL_ATENCION_CHOICES = [
+        ("MEDICINA_QUIRURGICA", "Medicina Quirúrgica (MQ)"), 
+        ("SALUD_MENTAL", "Salud Mental"), 
+        ("CUIDADOS_INTENSIVOS", "Cuidados Intensivos (UCI)"), 
+        ("INTERMEDIO", "Intermedio"), 
+        ("NEONATOLOGIA", "Neonatología"), 
+        ("OBSTETRICIA", "Obstetricia"), 
+        ("URGENCIA", "Urgencia"),
+    ]
+
+    TIPO_SOLICITUD_CHOICES = [
+        ("CONSULTA", "Consulta"),
+        ("ADMISION_DIRECTA", "Admisión Directa"),
+        ("TRASLADO_INGRESO", "Traslado de Ingreso"),
+        ("TRASLADO_SALIDA", "Traslado de Salida"),
+    ]
+    
+
     # Campos
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     episodio = models.ForeignKey(
@@ -61,6 +95,57 @@ class Gestion(models.Model):
     fecha_inicio = models.DateTimeField()
     fecha_fin = models.DateTimeField(blank=True, null=True)
     informe = models.TextField(blank=True, null=True)
+
+    # Campos de traslado (todos opcionales)
+    estado_traslado = models.CharField(
+        max_length=50,
+        choices=ESTADO_TRASLADO_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Estado del traslado si esta gestión es de tipo TRASLADO",
+    )
+    tipo_traslado = models.CharField(
+        max_length=50,
+        choices=TIPO_TRASLADO_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Tipo de traslado",
+    )
+    motivo_traslado = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Motivo o razón del traslado",
+    )
+    centro_destinatario = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Centro o institución de destino",
+    )
+    tipo_solicitud_traslado = models.CharField(
+        max_length=50,
+        choices=TIPO_SOLICITUD_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Tipo de solicitud de traslado",
+    )
+    nivel_atencion_traslado = models.CharField(
+        max_length=50,
+        choices=NIVEL_ATENCION_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Nivel de atención requerido en el traslado",
+    )
+    motivo_rechazo_traslado = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Motivo del rechazo si el traslado fue rechazado",
+    )
+    motivo_cancelacion_traslado = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Motivo de la cancelación si el traslado fue cancelado",
+    )
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

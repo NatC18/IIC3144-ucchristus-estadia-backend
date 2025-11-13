@@ -11,7 +11,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import Gestion
-from api.serializers import GestionSerializer
+from api.serializers import (
+    GestionSerializer,
+    GestionCreateSerializer,
+    GestionUpdateSerializer,
+    GestionListSerializer,
+)
 
 
 class GestionViewSet(viewsets.ModelViewSet):
@@ -39,6 +44,18 @@ class GestionViewSet(viewsets.ModelViewSet):
     search_fields = ["tipo_gestion", "informe"]
     ordering_fields = ["fecha_inicio", "fecha_fin", "created_at"]
     ordering = ["-fecha_inicio"]
+
+    def get_serializer_class(self):
+        """
+        Retorna el serializer apropiado según la acción
+        """
+        if self.action == "create":
+            return GestionCreateSerializer
+        elif self.action in ["update", "partial_update"]:
+            return GestionUpdateSerializer
+        elif self.action == "list":
+            return GestionListSerializer
+        return GestionSerializer
 
     @action(detail=False, methods=["get"])
     def pendientes(self, request):
@@ -131,3 +148,37 @@ class GestionViewSet(viewsets.ModelViewSet):
             )
 
         return Response(data)
+
+    @action(detail=False, methods=["get"])
+    def conteo_estados(self, request):
+        """
+        Retorna el total de gestiones y la cantidad por estado
+        GET /api/gestiones/conteo_estados/
+
+        Response:
+        {
+            "total": 150,
+            "por_estado": {
+                "INICIADA": 45,
+                "EN_PROGRESO": 30,
+                "COMPLETADA": 60,
+                "CANCELADA": 15
+            }
+        }
+        """
+        queryset = self.get_queryset()
+        total = queryset.count()
+
+        # Contar por cada estado
+        conteo_por_estado = {}
+        for estado_code, estado_label in Gestion.ESTADO_CHOICES:
+            count = queryset.filter(estado_gestion=estado_code).count()
+            conteo_por_estado[estado_code] = count
+
+        return Response(
+            {
+                "total": total,
+                "por_estado": conteo_por_estado,
+            }
+        )
+

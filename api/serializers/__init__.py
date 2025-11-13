@@ -25,7 +25,6 @@ from .paciente import (
     PacienteSerializer,
 )
 from .servicio import ServicioSerializer
-from .transferencia import TransferenciaSerializer
 
 __all__ = [
     "PacienteSerializer",
@@ -47,5 +46,4 @@ __all__ = [
     "EpisodioListSerializer",
     "EpisodioUpdateSerializer",
     "ServicioSerializer",
-    "TransferenciaSerializer",
 ]
