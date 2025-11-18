@@ -25,8 +25,8 @@ def upload_excel_files(request):
     Endpoint para recibir los 3 archivos Excel y procesarlos
     """
     try:
-        # Verificar que se hayan subido los 3 archivos
-        required_files = ["excel1", "excel2", "excel3"]
+        # Verificar que se hayan subido los 4 archivos
+        required_files = ["excel1", "excel2", "excel3", "excel4"]
         uploaded_files = {}
 
         for file_key in required_files:

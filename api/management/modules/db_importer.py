@@ -187,6 +187,9 @@ class DatabaseImporter:
                     if paciente_data.get("score_social") and not paciente.score_social:
                         paciente.score_social = paciente_data.get("score_social")
                         updated = True
+                        logger.info(
+                            f"Actualizando score social de {rut}: '{paciente.score_social}'"
+                        )
 
                     if updated:
                         paciente.save()
