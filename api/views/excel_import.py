@@ -7,6 +7,7 @@ import logging
 import os
 import shutil
 import tempfile
+import pandas as pd
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -16,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
+from api.services.scoring_runner import persist_scores_to_episodios
 
 
 @csrf_exempt
@@ -71,6 +73,15 @@ def upload_excel_files(request):
             try:
                 # Llamar al comando de Django directamente
                 call_command("importar_excel_local", folder=temp_dir, verbosity=2)
+
+                # Ejecutar scoring y persistir predicciones
+                try:
+                    updated = persist_scores_to_episodios(
+                        df_grd=pd.read_excel(os.path.join(temp_dir, "excel1.xlsx"))
+                    )
+                    logger.info(f"Scoring ejecutado. Episodios actualizados: {updated}")
+                except Exception as score_err:
+                    logger.error(f"Error en scoring: {score_err}")
 
                 return JsonResponse(
                     {

@@ -115,12 +115,12 @@ class EpisodioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def extensiones_criticas(self, request):
         """
-        Listar episodios con extensión crítica (outliers activos)
+        Listar episodios con extensión crítica (prediccion_extension = 1, activos)
         GET /api/episodios/extensiones_criticas/
         """
         episodios = (
             self.get_queryset()
-            .filter(fecha_egreso__isnull=True)
+            .filter(fecha_egreso__isnull=True, prediccion_extension=1)
             .select_related("paciente")
         )
 
@@ -128,18 +128,15 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         hoy = timezone.now().date()
         for ep in episodios:
             dias_estadia = (hoy - ep.fecha_ingreso.date()).days
-            if ep.estancia_norma_grd:
-                if dias_estadia > ep.estancia_norma_grd * (4 / 3):
-                    data.append(
-                        {
-                            "episodio": str(ep.episodio_cmbd),
-                            "paciente": ep.paciente.nombre,
-                            "dias_estadia": dias_estadia,
-                            "fecha_ingreso": ep.fecha_ingreso,
-                            "dias_esperados": ep.estancia_norma_grd,
-                        }
-                    )
-            # Si no hay norma, puedes decidir si mostrar o no
+            data.append(
+                {
+                    "episodio": str(ep.episodio_cmbd),
+                    "paciente": ep.paciente.nombre,
+                    "dias_estadia": dias_estadia,
+                    "fecha_ingreso": ep.fecha_ingreso,
+                    "prediccion_extension": ep.prediccion_extension,
+                }
+            )
 
         return Response(data)
 
