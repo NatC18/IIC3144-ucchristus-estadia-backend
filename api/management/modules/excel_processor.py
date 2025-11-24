@@ -62,7 +62,7 @@ class ExcelProcessor:
             self.excel3_df = self._load_single_excel(file_paths["excel3"], "excel3")
             if self.excel3_df is None:
                 return False
-            
+
             # Excel 4
             self.excel4_df = self._load_single_excel(file_paths["excel4"], "excel4")
             if self.excel4_df is None:
@@ -115,11 +115,11 @@ class ExcelProcessor:
                 episodio_col = possible_cols[0] if possible_cols else None
 
             elif file_name == "excel4":
-                
+
                 if "CÓDIGO EPISODIO CMBD" in df.columns:
                     episodio_col = "CÓDIGO EPISODIO CMBD"
                 else:
-                    
+
                     for c in df.columns:
                         if "episodio" in c.lower():
                             episodio_col = c
@@ -567,7 +567,7 @@ class ExcelProcessor:
                     "edad": self._extract_edad(row),
                     "fecha_nacimiento": self._extract_fecha_nacimiento(row),
                     "prevision": self._extract_prevision(row),
-                    "score_social": self._extract_puntaje(row)
+                    "score_social": self._extract_puntaje(row),
                 }
                 pacientes_data.append(paciente_data)
 
@@ -712,7 +712,7 @@ class ExcelProcessor:
                         except ValueError:
                             continue
         return ""
-    
+
     def _extract_puntaje(self, row) -> float:
         """Extrae puntaje de diferentes columnas posibles, incluyendo columnas con sufijos"""
         puntaje_columns = [
@@ -1150,24 +1150,25 @@ class ExcelProcessor:
                 puntaje_col = "Puntaje"
 
                 # 1. Normalizar tipos a string para evitar errores de merge
-                combined_df["CÓDIGO EPISODIO CMBD"] = combined_df["CÓDIGO EPISODIO CMBD"].astype(str)
+                combined_df["CÓDIGO EPISODIO CMBD"] = combined_df[
+                    "CÓDIGO EPISODIO CMBD"
+                ].astype(str)
                 df4[episodio_col_4] = df4[episodio_col_4].astype(str)
 
                 # 2. Reducir Excel4 solo a episodio + puntaje
                 df4_reduced = df4[[episodio_col_4, puntaje_col]].copy()
-                df4_reduced = df4_reduced.rename(columns={
-                    episodio_col_4: "CÓDIGO EPISODIO CMBD",
-                    puntaje_col: "score_social"  
-                })
+                df4_reduced = df4_reduced.rename(
+                    columns={
+                        episodio_col_4: "CÓDIGO EPISODIO CMBD",
+                        puntaje_col: "score_social",
+                    }
+                )
 
                 print(df4_reduced.head())
 
                 # 3. Merge LEFT para agregar score_social
                 combined_df = pd.merge(
-                    combined_df,
-                    df4_reduced,
-                    on="CÓDIGO EPISODIO CMBD",
-                    how="left"
+                    combined_df, df4_reduced, on="CÓDIGO EPISODIO CMBD", how="left"
                 )
 
             result["combined"] = combined_df
