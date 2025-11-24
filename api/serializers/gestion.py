@@ -175,6 +175,7 @@ class GestionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gestion
         fields = [
+            "id",
             "episodio",
             "usuario",
             "tipo_gestion",
@@ -193,6 +194,7 @@ class GestionCreateSerializer(serializers.ModelSerializer):
             "motivo_cancelacion_traslado",
             "fecha_finalizacion_traslado",
         ]
+        read_only_fields = ["id"]
 
     def validate(self, data):
         """

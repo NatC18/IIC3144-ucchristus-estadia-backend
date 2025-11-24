@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from api.models import Cama, Episodio, Gestion, Paciente, Transferencia
+from api.models import Cama, Episodio, Gestion, Paciente
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -30,7 +30,6 @@ class DatabaseImporter:
             "camas": {"created": 0, "updated": 0, "errors": 0},
             "episodios": {"created": 0, "updated": 0, "errors": 0},
             "gestiones": {"created": 0, "updated": 0, "errors": 0},
-            "transferencias": {"created": 0, "updated": 0, "errors": 0},
         }
         self.error_details = []
         # Mapeos para facilitar búsquedas
@@ -67,10 +66,6 @@ class DatabaseImporter:
                 # 4. Importar gestiones (dependen de episodios)
                 if "gestiones" in mapped_data:
                     self._import_gestiones(mapped_data["gestiones"])
-
-                # 5. Importar transferencias (dependen de episodios)
-                if "transferencias" in mapped_data:
-                    self._import_transferencias(mapped_data["transferencias"])
 
             logger.info("Importación completada exitosamente")
 
@@ -548,140 +543,15 @@ class DatabaseImporter:
 
     def _import_transferencias(self, transferencias_data: List[Dict]) -> None:
         """
-        Importa datos de transferencias
+        Importa datos de transferencias (DEPRECATED - Transferencia model fue removido)
 
         Args:
             transferencias_data: Lista de datos de transferencias
         """
-        logger.info(f"Importando {len(transferencias_data)} transferencias...")
-
-        for transferencia_data in transferencias_data:
-            try:
-                episodio_cmbd = transferencia_data.get("episodio_cmbd")
-                if not episodio_cmbd:
-                    self.results["transferencias"]["errors"] += 1
-                    self.error_details.append("Transferencia sin episodio_cmbd")
-                    continue
-
-                # Buscar episodio correspondiente
-                try:
-                    episodio = Episodio.objects.get(episodio_cmbd=episodio_cmbd)
-                except Episodio.DoesNotExist:
-                    self.results["transferencias"]["errors"] += 1
-                    self.error_details.append(
-                        f"No se encontró episodio {episodio_cmbd} para transferencia"
-                    )
-                    continue
-
-                # Buscar o crear gestión asociada
-                gestion, gestion_created = Gestion.objects.get_or_create(
-                    episodio=episodio,
-                    tipo_gestion="TRANSFERENCIA",
-                    defaults={
-                        "episodio": episodio,
-                        "fecha_inicio": transferencia_data.get("fecha_solicitud"),
-                    },
-                )
-
-                if gestion_created:
-                    logger.debug(
-                        f"Gestión de transferencia creada para episodio {episodio_cmbd}"
-                    )
-
-                # Verificar si ya existe transferencia para esta gestión
-                transferencia, created = Transferencia.objects.get_or_create(
-                    gestion=gestion,
-                    defaults={
-                        "estado": transferencia_data.get("estado", "PENDIENTE"),
-                        "motivo_cancelacion": transferencia_data.get(
-                            "motivo_cancelacion"
-                        ),
-                        "motivo_rechazo": transferencia_data.get("motivo_rechazo"),
-                        "tipo_traslado": transferencia_data.get("tipo_traslado", ""),
-                        "motivo_traslado": transferencia_data.get(
-                            "motivo_traslado", ""
-                        ),
-                        "centro_destinatario": transferencia_data.get(
-                            "centro_destinatario", ""
-                        ),
-                    },
-                )
-
-                if created:
-                    self.results["transferencias"]["created"] += 1
-                    logger.debug(f"Transferencia creada para episodio {episodio_cmbd}")
-                else:
-                    # Actualizar datos si es necesario
-                    updated = False
-                    if transferencia_data.get(
-                        "estado"
-                    ) and transferencia.estado != transferencia_data.get("estado"):
-                        transferencia.estado = transferencia_data.get("estado")
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_cancelacion"
-                    ) and transferencia.motivo_cancelacion != transferencia_data.get(
-                        "motivo_cancelacion"
-                    ):
-                        transferencia.motivo_cancelacion = transferencia_data.get(
-                            "motivo_cancelacion"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_rechazo"
-                    ) and transferencia.motivo_rechazo != transferencia_data.get(
-                        "motivo_rechazo"
-                    ):
-                        transferencia.motivo_rechazo = transferencia_data.get(
-                            "motivo_rechazo"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "tipo_traslado"
-                    ) and transferencia.tipo_traslado != transferencia_data.get(
-                        "tipo_traslado"
-                    ):
-                        transferencia.tipo_traslado = transferencia_data.get(
-                            "tipo_traslado"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_traslado"
-                    ) and transferencia.motivo_traslado != transferencia_data.get(
-                        "motivo_traslado"
-                    ):
-                        transferencia.motivo_traslado = transferencia_data.get(
-                            "motivo_traslado"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "centro_destinatario"
-                    ) and transferencia.centro_destinatario != transferencia_data.get(
-                        "centro_destinatario"
-                    ):
-                        transferencia.centro_destinatario = transferencia_data.get(
-                            "centro_destinatario"
-                        )
-                        updated = True
-
-                    if updated:
-                        transferencia.save()
-                        self.results["transferencias"]["updated"] += 1
-                        logger.debug(
-                            f"Transferencia actualizada para episodio {episodio_cmbd}"
-                        )
-
-            except ValidationError as e:
-                self.results["transferencias"]["errors"] += 1
-                error_msg = f"Error validación transferencia para episodio {episodio_cmbd}: {str(e)}"
-                self.error_details.append(error_msg)
-                logger.error(error_msg)
-
-            except Exception as e:
-                self.results["transferencias"]["errors"] += 1
-                error_msg = f"Error procesando transferencia para episodio {episodio_cmbd}: {str(e)}"
-                self.error_details.append(error_msg)
-                logger.error(error_msg)
+        logger.info(f"Importando {len(transferencias_data)} transferencias (DEPRECATED)...")
+        # Este método ya no hace nada ya que el modelo Transferencia fue removido
+        # Las transferencias ahora se manejan a través de gestiones de tipo TRASLADO
+        pass
 
     def _get_results_summary(self) -> Dict:
         """
