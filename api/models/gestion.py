@@ -146,6 +146,12 @@ class Gestion(models.Model):
         help_text="Motivo de la cancelación si el traslado fue cancelado",
     )
 
+    fecha_finalizacion_traslado = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Fecha de finalización del traslado",
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

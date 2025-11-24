@@ -2,6 +2,8 @@
 Serializers para el modelo Gestion
 """
 
+from datetime import datetime
+
 from rest_framework import serializers
 
 from api.models import Gestion
@@ -67,6 +69,7 @@ class GestionSerializer(serializers.ModelSerializer):
             "nivel_atencion_traslado_display",
             "motivo_rechazo_traslado",
             "motivo_cancelacion_traslado",
+            "fecha_finalizacion_traslado",
             # Notas
             "notas",
         ]
@@ -188,6 +191,7 @@ class GestionCreateSerializer(serializers.ModelSerializer):
             "nivel_atencion_traslado",
             "motivo_rechazo_traslado",
             "motivo_cancelacion_traslado",
+            "fecha_finalizacion_traslado",
         ]
 
     def validate(self, data):
@@ -341,6 +345,7 @@ class GestionUpdateSerializer(serializers.ModelSerializer):
             "nivel_atencion_traslado",
             "motivo_rechazo_traslado",
             "motivo_cancelacion_traslado",
+            "fecha_finalizacion_traslado",
         ]
 
     def validate(self, data):
@@ -371,3 +376,29 @@ class GestionUpdateSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+    def update(self, instance, validated_data):
+        """
+        Actualizar instancia con lógica para fecha_finalizacion_traslado
+        """
+        # Estados finales del traslado
+        FINAL_TRASLADO_STATES = ["CANCELADO", "COMPLETADO", "RECHAZADO"]
+
+        # Obtener el nuevo estado_traslado si se proporciona
+        nuevo_estado_traslado = validated_data.get(
+            "estado_traslado", instance.estado_traslado
+        )
+
+        # Si el estado_traslado se cambia a un estado final y no tiene fecha_finalizacion_traslado
+        if nuevo_estado_traslado in FINAL_TRASLADO_STATES:
+            # Si no se proporciona fecha_finalizacion_traslado, se establece a ahora
+            if not validated_data.get("fecha_finalizacion_traslado"):
+                validated_data["fecha_finalizacion_traslado"] = datetime.now()
+
+        # Si el estado_traslado se cambia a un estado no final, limpiar fecha_finalizacion_traslado
+        elif (
+            nuevo_estado_traslado not in FINAL_TRASLADO_STATES and nuevo_estado_traslado
+        ):
+            validated_data["fecha_finalizacion_traslado"] = None
+
+        return super().update(instance, validated_data)
