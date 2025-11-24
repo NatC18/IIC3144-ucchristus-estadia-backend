@@ -34,6 +34,7 @@ def make_files(valid=True):
         "excel1": make_file(f"excel1.{ext}"),
         "excel2": make_file("excel2.xlsx"),
         "excel3": make_file("excel3.xlsx"),
+        "excel4": make_file("excel4.xlsx"),
     }
 
 
@@ -69,7 +70,7 @@ def test_upload_excel_files_success(mock_call, rf):
     data = json.loads(response.content)
     assert response.status_code == 200
     assert data["success"] is True
-    assert set(data["data"]["files_processed"]) == {"excel1", "excel2", "excel3"}
+    assert set(data["data"]["files_processed"]) == {"excel1", "excel2", "excel3", "excel4"}
 
 
 @patch("api.views.excel_import.call_command", side_effect=Exception("fallo"))
