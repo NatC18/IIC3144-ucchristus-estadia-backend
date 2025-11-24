@@ -731,7 +731,7 @@ class ExcelProcessor:
                         return float(puntaje_val)
                 except (ValueError, TypeError):
                     continue
-        return 0.0
+        return ""
 
     def _prepare_episodios_data(self) -> pd.DataFrame:
         """Prepara datos para el modelo Episodio extrayendo del DataFrame combinado"""
