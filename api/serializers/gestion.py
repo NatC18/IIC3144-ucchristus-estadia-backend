@@ -5,6 +5,7 @@ Serializers para el modelo Gestion
 from rest_framework import serializers
 
 from api.models import Gestion
+from .nota import NotaListSerializer
 
 
 class GestionSerializer(serializers.ModelSerializer):
@@ -29,6 +30,8 @@ class GestionSerializer(serializers.ModelSerializer):
     episodio_cmbd = serializers.SerializerMethodField()
     paciente_nombre = serializers.SerializerMethodField()
     paciente_id = serializers.SerializerMethodField()
+    # Notas relacionadas
+    notas = NotaListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Gestion
@@ -63,6 +66,8 @@ class GestionSerializer(serializers.ModelSerializer):
             "nivel_atencion_traslado_display",
             "motivo_rechazo_traslado",
             "motivo_cancelacion_traslado",
+            # Notas
+            "notas",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -206,25 +211,16 @@ class GestionCreateSerializer(serializers.ModelSerializer):
         # Validar campos de traslado si tipo_gestion es TRASLADO
         tipo_gestion = data.get("tipo_gestion")
         if tipo_gestion == "TRASLADO":
-            # Validar que los campos requeridos estén presentes
-            required_traslado_fields = {
-                "estado_traslado": "Estado del traslado",
-                "tipo_traslado": "Tipo de traslado",
-                "motivo_traslado": "Motivo del traslado",
-                "centro_destinatario": "Centro de destinatario",
-                "tipo_solicitud_traslado": "Tipo de solicitud",
-                "nivel_atencion_traslado": "Nivel de atención",
-            }
-            
-            missing_fields = []
-            for field, label in required_traslado_fields.items():
-                if not data.get(field):
-                    missing_fields.append(label)
-            
-            if missing_fields:
+            # Al menos algunos campos de traslado deberían ser proporcionados
+            traslado_fields = [
+                data.get("estado_traslado"),
+                data.get("tipo_traslado"),
+                data.get("motivo_traslado"),
+            ]
+            if not any(traslado_fields):
                 raise serializers.ValidationError(
                     {
-                        "traslado_fields": f"Para gestiones de tipo TRASLADO, los siguientes campos son requeridos: {', '.join(missing_fields)}"
+                        "traslado_fields": "Para gestiones de tipo TRASLADO, debe proporcionar al menos el estado, tipo o motivo del traslado"
                     }
                 )
 
@@ -249,6 +245,7 @@ class GestionListSerializer(serializers.ModelSerializer):
     )
     estado_traslado_display = serializers.SerializerMethodField()
     tipo_traslado_display = serializers.SerializerMethodField()
+    episodio_cmbd = serializers.SerializerMethodField()
 
     class Meta:
         model = Gestion
@@ -264,6 +261,7 @@ class GestionListSerializer(serializers.ModelSerializer):
             "fecha_inicio",
             "fecha_fin",
             "created_at",
+            "episodio_cmbd",
             # Campos de traslado
             "estado_traslado",
             "estado_traslado_display",
@@ -293,6 +291,14 @@ class GestionListSerializer(serializers.ModelSerializer):
         """
         if obj.tipo_gestion == "TRASLADO" and obj.tipo_traslado:
             return obj.get_tipo_traslado_display()
+        return None
+
+    def get_episodio_cmbd(self, obj):
+        """
+        Retorna el episodio_cmbd del episodio asociado
+        """
+        if obj.episodio:
+            return obj.episodio.episodio_cmbd
         return None
 
     def to_representation(self, instance):

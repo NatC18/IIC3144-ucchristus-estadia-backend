@@ -19,6 +19,12 @@ from .gestion import (
     GestionSerializer,
     GestionUpdateSerializer,
 )
+from .nota import (
+    NotaCreateSerializer,
+    NotaListSerializer,
+    NotaSerializer,
+    NotaUpdateSerializer,
+)
 from .paciente import (
     PacienteCreateSerializer,
     PacienteListSerializer,
@@ -39,6 +45,10 @@ __all__ = [
     "GestionCreateSerializer",
     "GestionListSerializer",
     "GestionUpdateSerializer",
+    "NotaSerializer",
+    "NotaCreateSerializer",
+    "NotaListSerializer",
+    "NotaUpdateSerializer",
     "CamaSerializer",
     "EpisodioServicioSerializer",
     "EpisodioSerializer",
