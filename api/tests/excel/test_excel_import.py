@@ -70,7 +70,12 @@ def test_upload_excel_files_success(mock_call, rf):
     data = json.loads(response.content)
     assert response.status_code == 200
     assert data["success"] is True
-    assert set(data["data"]["files_processed"]) == {"excel1", "excel2", "excel3", "excel4"}
+    assert set(data["data"]["files_processed"]) == {
+        "excel1",
+        "excel2",
+        "excel3",
+        "excel4",
+    }
 
 
 @patch("api.views.excel_import.call_command", side_effect=Exception("fallo"))

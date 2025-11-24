@@ -47,10 +47,7 @@ def sample_excel_files(tmp_path):
     )
 
     df4 = pd.DataFrame(
-        {
-            "Episodio / Estadía": ["EP001", "EP002"],
-            "Puntaje": ["3", "7"]
-        }
+        {"Episodio / Estadía": ["EP001", "EP002"], "Puntaje": ["3", "7"]}
     )
     path1 = tmp_path / "excel1.xlsx"
     path2 = tmp_path / "excel2.xlsx"
@@ -295,7 +292,12 @@ def test_logger_called_on_error(monkeypatch, caplog):
         raise Exception("error for test")
 
     monkeypatch.setattr(processor, "_load_single_excel", bad_load_excel)
-    files = {"excel1": "fake1.xlsx", "excel2": "fake2.xlsx", "excel3": "fake3.xlsx", "excel4": "fake4.xlsx"}
+    files = {
+        "excel1": "fake1.xlsx",
+        "excel2": "fake2.xlsx",
+        "excel3": "fake3.xlsx",
+        "excel4": "fake4.xlsx",
+    }
     with caplog.at_level(logging.ERROR):
         processor.load_excel_files(files)
     assert "error for test" in caplog.text or "Faltan archivos" in caplog.text
@@ -314,7 +316,12 @@ def test_returns_false_when_excel1_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1"]  # se corta antes de excel2
@@ -335,7 +342,12 @@ def test_returns_false_when_excel2_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1", "excel2"]
@@ -356,7 +368,12 @@ def test_returns_false_when_excel3_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1", "excel2", "excel3"]
@@ -378,7 +395,12 @@ def test_load_excel_files_exception_during_excel1(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel1)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
 
@@ -396,7 +418,12 @@ def test_load_excel_files_exception_during_excel2(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel2)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
 
@@ -414,6 +441,11 @@ def test_load_excel_files_exception_during_excel3(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel3)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx", "excel4": "mock4.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
