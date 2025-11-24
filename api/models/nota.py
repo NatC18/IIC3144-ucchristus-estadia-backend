@@ -31,8 +31,6 @@ class Nota(models.Model):
     fecha_nota = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=50)
 
-
-
     class Meta:
         db_table = "notas"
         ordering = ["-fecha_nota"]
@@ -41,11 +39,11 @@ class Nota(models.Model):
 
     def __str__(self):
         return f"Nota {self.id} - Gestion: {self.gestion.id}"
-    
+
     def clean(self):
         # Validar que la descripcion no este vacia
         if not self.descripcion:
             raise ValidationError("La descripcion no puede estar vacia")
         # Validar que el estado no este vacio
         if not self.estado:
-            raise ValidationError("El estado no puede estar vacio") 
+            raise ValidationError("El estado no puede estar vacio")

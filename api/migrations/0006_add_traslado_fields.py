@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0005_add_traslado_fields'),
+        ("api", "0005_add_traslado_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gestion',
-            name='estado_traslado',
-            field=models.CharField(blank=True, choices=[('SOLICITADO', 'Solicitado'), ('APROBADO', 'Aprobado'), ('RECHAZADO', 'Rechazado'), ('CANCELADO', 'Cancelado'), ('EN_TRANSITO', 'En Tránsito'), ('COMPLETADO', 'Completado')], help_text='Estado del traslado si esta gestión es de tipo TRASLADO', max_length=50, null=True),
+            model_name="gestion",
+            name="estado_traslado",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("SOLICITADO", "Solicitado"),
+                    ("APROBADO", "Aprobado"),
+                    ("RECHAZADO", "Rechazado"),
+                    ("CANCELADO", "Cancelado"),
+                    ("EN_TRANSITO", "En Tránsito"),
+                    ("COMPLETADO", "Completado"),
+                ],
+                help_text="Estado del traslado si esta gestión es de tipo TRASLADO",
+                max_length=50,
+                null=True,
+            ),
         ),
     ]

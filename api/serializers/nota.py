@@ -118,9 +118,7 @@ class NotaUpdateSerializer(serializers.ModelSerializer):
                 {"descripcion": "La descripción no puede estar vacía"}
             )
 
-        if "estado" in data and (
-            not data["estado"] or not data["estado"].strip()
-        ):
+        if "estado" in data and (not data["estado"] or not data["estado"].strip()):
             raise serializers.ValidationError(
                 {"estado": "El estado no puede estar vacío"}
             )

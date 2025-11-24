@@ -3,7 +3,7 @@ Views para el modelo Gestion
 """
 
 from django.db.models import Count, Q
-from django_filters import FilterSet, CharFilter
+from django_filters import CharFilter, FilterSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -13,10 +13,10 @@ from rest_framework.response import Response
 
 from api.models import Gestion
 from api.serializers import (
-    GestionSerializer,
     GestionCreateSerializer,
-    GestionUpdateSerializer,
     GestionListSerializer,
+    GestionSerializer,
+    GestionUpdateSerializer,
 )
 
 
@@ -24,7 +24,8 @@ class GestionFilterSet(FilterSet):
     """
     Custom FilterSet para manejar filtros especiales como 'not_assigned'
     """
-    usuario = CharFilter(method='filter_usuario')
+
+    usuario = CharFilter(method="filter_usuario")
 
     def filter_usuario(self, queryset, name, value):
         """
@@ -32,15 +33,15 @@ class GestionFilterSet(FilterSet):
         Si value es 'not_assigned', retorna gestiones sin usuario asignado
         Si value es un UUID, retorna gestiones con ese usuario
         """
-        if value == 'not_assigned':
+        if value == "not_assigned":
             return queryset.filter(usuario__isnull=True)
-        elif value and value != 'all':
+        elif value and value != "all":
             return queryset.filter(usuario__id=value)
         return queryset
 
     class Meta:
         model = Gestion
-        fields = ['estado_gestion', 'tipo_gestion', 'episodio', 'usuario']
+        fields = ["estado_gestion", "tipo_gestion", "episodio", "usuario"]
 
 
 class GestionViewSet(viewsets.ModelViewSet):

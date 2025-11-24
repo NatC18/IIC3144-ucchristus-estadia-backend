@@ -6,7 +6,13 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from api.views import EpisodioViewSet, GestionViewSet, NotaViewSet, PacienteViewSet, health_check
+from api.views import (
+    EpisodioViewSet,
+    GestionViewSet,
+    NotaViewSet,
+    PacienteViewSet,
+    health_check,
+)
 from api.views.archivo_views import (
     cargar_archivo,
     eliminar_archivo,

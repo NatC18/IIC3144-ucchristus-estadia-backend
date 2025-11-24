@@ -61,12 +61,12 @@ class Gestion(models.Model):
     ]
 
     NIVEL_ATENCION_CHOICES = [
-        ("MEDICINA_QUIRURGICA", "Medicina Quirúrgica (MQ)"), 
-        ("SALUD_MENTAL", "Salud Mental"), 
-        ("CUIDADOS_INTENSIVOS", "Cuidados Intensivos (UCI)"), 
-        ("INTERMEDIO", "Intermedio"), 
-        ("NEONATOLOGIA", "Neonatología"), 
-        ("OBSTETRICIA", "Obstetricia"), 
+        ("MEDICINA_QUIRURGICA", "Medicina Quirúrgica (MQ)"),
+        ("SALUD_MENTAL", "Salud Mental"),
+        ("CUIDADOS_INTENSIVOS", "Cuidados Intensivos (UCI)"),
+        ("INTERMEDIO", "Intermedio"),
+        ("NEONATOLOGIA", "Neonatología"),
+        ("OBSTETRICIA", "Obstetricia"),
         ("URGENCIA", "Urgencia"),
     ]
 
@@ -76,7 +76,6 @@ class Gestion(models.Model):
         ("TRASLADO_INGRESO", "Traslado de Ingreso"),
         ("TRASLADO_SALIDA", "Traslado de Salida"),
     ]
-    
 
     # Campos
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

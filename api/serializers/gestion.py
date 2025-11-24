@@ -5,6 +5,7 @@ Serializers para el modelo Gestion
 from rest_framework import serializers
 
 from api.models import Gestion
+
 from .nota import NotaListSerializer
 
 
@@ -140,7 +141,7 @@ class GestionSerializer(serializers.ModelSerializer):
         Personaliza la representación para ocultar campos de traslado si no es tipo TRASLADO
         """
         data = super().to_representation(instance)
-        
+
         # Si no es tipo TRASLADO, remover los campos de traslado
         if instance.tipo_gestion != "TRASLADO":
             traslado_fields = [
@@ -159,7 +160,7 @@ class GestionSerializer(serializers.ModelSerializer):
             ]
             for field in traslado_fields:
                 data.pop(field, None)
-        
+
         return data
 
 
@@ -306,14 +307,14 @@ class GestionListSerializer(serializers.ModelSerializer):
         Personaliza la representación para ocultar campos de traslado si no es tipo TRASLADO
         """
         data = super().to_representation(instance)
-        
+
         # Si no es tipo TRASLADO, remover los campos de traslado
         if instance.tipo_gestion != "TRASLADO":
             data.pop("estado_traslado", None)
             data.pop("estado_traslado_display", None)
             data.pop("tipo_traslado", None)
             data.pop("tipo_traslado_display", None)
-        
+
         return data
 
 
