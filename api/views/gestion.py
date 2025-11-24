@@ -3,6 +3,7 @@ Views para el modelo Gestion
 """
 
 from django.db.models import Count, Q
+from django_filters import CharFilter, FilterSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -11,7 +12,36 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import Gestion
-from api.serializers import GestionSerializer
+from api.serializers import (
+    GestionCreateSerializer,
+    GestionListSerializer,
+    GestionSerializer,
+    GestionUpdateSerializer,
+)
+
+
+class GestionFilterSet(FilterSet):
+    """
+    Custom FilterSet para manejar filtros especiales como 'not_assigned'
+    """
+
+    usuario = CharFilter(method="filter_usuario")
+
+    def filter_usuario(self, queryset, name, value):
+        """
+        Filtro personalizado para usuario
+        Si value es 'not_assigned', retorna gestiones sin usuario asignado
+        Si value es un UUID, retorna gestiones con ese usuario
+        """
+        if value == "not_assigned":
+            return queryset.filter(usuario__isnull=True)
+        elif value and value != "all":
+            return queryset.filter(usuario__id=value)
+        return queryset
+
+    class Meta:
+        model = Gestion
+        fields = ["estado_gestion", "tipo_gestion", "episodio", "usuario"]
 
 
 class GestionViewSet(viewsets.ModelViewSet):
@@ -35,10 +65,22 @@ class GestionViewSet(viewsets.ModelViewSet):
 
     # Filtros y búsqueda
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["estado_gestion", "tipo_gestion", "episodio", "usuario"]
+    filterset_class = GestionFilterSet
     search_fields = ["tipo_gestion", "informe"]
     ordering_fields = ["fecha_inicio", "fecha_fin", "created_at"]
     ordering = ["-fecha_inicio"]
+
+    def get_serializer_class(self):
+        """
+        Retorna el serializer apropiado según la acción
+        """
+        if self.action == "create":
+            return GestionCreateSerializer
+        elif self.action in ["update", "partial_update"]:
+            return GestionUpdateSerializer
+        elif self.action == "list":
+            return GestionListSerializer
+        return GestionSerializer
 
     @action(detail=False, methods=["get"])
     def pendientes(self, request):
