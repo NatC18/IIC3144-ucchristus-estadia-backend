@@ -8,8 +8,8 @@ from django.core.management.base import BaseCommand
 from api.seeds.camas import create_camas
 from api.seeds.episodios_gestiones import create_episodios_y_gestiones
 from api.seeds.pacientes import create_pacientes
-from api.seeds.users import create_users
 from api.seeds.servicios import create_servicios
+from api.seeds.users import create_users
 
 
 class Command(BaseCommand):

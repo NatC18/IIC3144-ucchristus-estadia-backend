@@ -49,7 +49,6 @@ def create_servicios():
         ("UEMECLI6", "Médico Quirúrgico"),
     ]
 
-
     for servicio_data in servicios_data:
         servicio, created = Servicio.objects.get_or_create(
             codigo=servicio_data[0], defaults={"descripcion": servicio_data[1]}

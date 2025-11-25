@@ -248,6 +248,10 @@ class DataMapper:
                     # No hay fecha de alta en Excel2, el episodio sigue abierto
                     fecha_egreso = None
 
+                servicio_ingreso = self._extract_servicios(row, "Ingreso")
+                servicios_traslado = self._extract_servicios_traslado(row)
+                servicio_egreso = self._extract_servicios(row, "Egreso")
+
                 episodio_data = {
                     "episodio_cmbd": self._convert_to_int(
                         self._safe_get(row, "CÓDIGO EPISODIO CMBD")
@@ -272,7 +276,22 @@ class DataMapper:
                         row, "Estancia Norma GRD"
                     ),
                     "codigo_cama": self._extract_codigo_cama_from_row(row),
+                    "servicios": [
+                        {
+                            "codigo": servicio_ingreso,
+                            "fecha": fecha_ingreso,
+                            "tipo": "INGRESO",
+                        },
+                        *servicios_traslado,
+                        {
+                            "codigo": servicio_egreso,
+                            "fecha": fecha_egreso,
+                            "tipo": "EGRESO",
+                        },
+                    ],
                 }
+
+                print("[DEBUG] Episodio mapeado:", episodio_data)
 
                 if episodio_data["episodio_cmbd"] and episodio_data["rut_paciente"]:
                     episodios.append(episodio_data)
@@ -456,6 +475,42 @@ class DataMapper:
                     return str(cama_info).strip()
 
         return None
+
+    def _extract_servicios(self, row: pd.Series, tipo: str) -> str:
+        """Extrae los códigos de servicios de una fila, filtrando por tipo"""
+
+        if tipo == "Ingreso":
+            servicio = self._safe_get(row, "Servicio Ingreso (Código)")
+            if servicio and str(servicio) != "nan":
+                return str(servicio).strip()
+
+        elif tipo == "Egreso":
+            servicio = self._safe_get(row, "Servicio Egreso (Código)_2")
+            print("[DEBUG] Servicio Egreso (Código)_2:", servicio)
+            if servicio and str(servicio) != "nan":
+                return str(servicio).strip()
+
+    def _extract_servicios_traslado(self, row: pd.Series) -> List[str]:
+        """Extrae los códigos de servicios de traslado de una fila"""
+        import re
+
+        servicios_traslado = []
+
+        servicio_traslados = self._safe_get(row, "Conjunto de Servicios Traslado")
+        if servicio_traslados and isinstance(servicio_traslados, str):
+            servicios = re.findall(r"\[([^\]]+)\]", servicio_traslados)
+
+        for i, servicio in enumerate(servicios):
+            fecha = self._parse_date_universal(
+                self._safe_get(row, f"Fecha       (tr{i+1})")
+            )
+            s = {
+                "codigo": servicio,
+                "fecha": fecha,
+                "tipo": "TRASLADO",
+            }
+            servicios_traslado.append(s)
+        return servicios_traslado
 
     def _map_episodios(self, df: pd.DataFrame) -> List[Dict]:
         """

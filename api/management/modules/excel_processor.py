@@ -698,8 +698,6 @@ class ExcelProcessor:
                 "estancia_dias": self._extract_estancia(row),
             }
 
-            print("[DEBUG]: episodio data", episodio_data)
-
             episodios_data.append(episodio_data)
 
         if not episodios_data:
@@ -778,11 +776,9 @@ class ExcelProcessor:
             "servicio ingreso (descripción)_excel2",
             "servicio (especialidad)_excel2",
         ]
-        print("[DEBUG]: extrayendo servicio")
         for col in servicio_columns:
             if col in row and not pd.isna(row[col]) and str(row[col]).strip() != "":
                 serv_val = str(row[col]).strip()
-                print("[DEBUG]: service value", serv_val)
                 if serv_val.lower() != "nan":
                     return serv_val
         return ""

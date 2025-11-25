@@ -1,8 +1,11 @@
 from datetime import date
+
 from django.utils import timezone
 from rest_framework import status
-from api.models import Episodio, Gestion, Paciente, Nota
+
+from api.models import Episodio, Gestion, Nota, Paciente
 from api.tests.base_test import AuthenticatedAPITestCase
+
 
 class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
     """Test de Integración: CRUD de Notas"""
@@ -38,7 +41,7 @@ class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
         data = {
             "gestion": str(self.gestion.id),
             "descripcion": "Nota de prueba",
-            "estado": "pendiente"
+            "estado": "pendiente",
         }
 
         response = self.client.post(self.url, data, format="json")
@@ -48,9 +51,11 @@ class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
         # self.assertIn("id", response.data)
         self.assertEqual(response.data["descripcion"], "Nota de prueba")
         self.assertEqual(response.data["estado"], "pendiente")
-        
+
         # Verificar persistencia
-        nota = Nota.objects.filter(gestion=self.gestion, descripcion="Nota de prueba").first()
+        nota = Nota.objects.filter(
+            gestion=self.gestion, descripcion="Nota de prueba"
+        ).first()
         self.assertIsNotNone(nota)
         self.assertEqual(nota.gestion.id, self.gestion.id)
 
@@ -58,22 +63,16 @@ class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
         """Debe listar las notas existentes"""
         # Limpiar notas previas si existen (por si acaso)
         Nota.objects.all().delete()
-        
+
         Nota.objects.create(
-            gestion=self.gestion,
-            descripcion="Nota 1",
-            estado="pendiente"
+            gestion=self.gestion, descripcion="Nota 1", estado="pendiente"
         )
-        Nota.objects.create(
-            gestion=self.gestion,
-            descripcion="Nota 2",
-            estado="lista"
-        )
+        Nota.objects.create(gestion=self.gestion, descripcion="Nota 2", estado="lista")
 
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Manejar paginación
         if "results" in response.data:
             results = response.data["results"]
@@ -85,16 +84,11 @@ class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
     def test_actualizar_nota(self):
         """Debe permitir actualizar una nota (ej. cambiar estado)"""
         nota = Nota.objects.create(
-            gestion=self.gestion,
-            descripcion="Nota original",
-            estado="pendiente"
+            gestion=self.gestion, descripcion="Nota original", estado="pendiente"
         )
 
         url_detalle = f"{self.url}{nota.id}/"
-        data = {
-            "descripcion": "Nota actualizada",
-            "estado": "lista"
-        }
+        data = {"descripcion": "Nota actualizada", "estado": "lista"}
 
         response = self.client.put(url_detalle, data, format="json")
 
@@ -109,9 +103,7 @@ class NotaCRUDIntegrationTest(AuthenticatedAPITestCase):
     def test_eliminar_nota(self):
         """Debe permitir eliminar una nota"""
         nota = Nota.objects.create(
-            gestion=self.gestion,
-            descripcion="Nota a eliminar",
-            estado="pendiente"
+            gestion=self.gestion, descripcion="Nota a eliminar", estado="pendiente"
         )
 
         url_detalle = f"{self.url}{nota.id}/"
