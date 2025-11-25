@@ -22,11 +22,12 @@ class ExcelProcessor:
         self.excel1_df = None
         self.excel2_df = None
         self.excel3_df = None
+        self.excel4_df = None
         self.combined_df = None
 
     def load_excel_files(self, file_paths: Dict[str, Path]) -> bool:
         """
-        Carga los tres archivos Excel en DataFrames
+        Carga los cuatro archivos Excel en DataFrames
 
         Args:
             file_paths: Dict con nombres de archivo -> rutas locales
@@ -36,7 +37,7 @@ class ExcelProcessor:
         """
         try:
             # Definir archivos esperados
-            expected_files = ["excel1", "excel2", "excel3"]
+            expected_files = ["excel1", "excel2", "excel3", "excel4"]
 
             # Verificar que tenemos todos los archivos
             missing_files = [f for f in expected_files if f not in file_paths]
@@ -60,6 +61,11 @@ class ExcelProcessor:
             # Excel 3
             self.excel3_df = self._load_single_excel(file_paths["excel3"], "excel3")
             if self.excel3_df is None:
+                return False
+
+            # Excel 4
+            self.excel4_df = self._load_single_excel(file_paths["excel4"], "excel4")
+            if self.excel4_df is None:
                 return False
 
             logger.info("Todos los archivos Excel cargados exitosamente")
@@ -108,6 +114,17 @@ class ExcelProcessor:
                 possible_cols = [col for col in df.columns if "episodio" in col.lower()]
                 episodio_col = possible_cols[0] if possible_cols else None
 
+            elif file_name == "excel4":
+
+                if "CÓDIGO EPISODIO CMBD" in df.columns:
+                    episodio_col = "CÓDIGO EPISODIO CMBD"
+                else:
+
+                    for c in df.columns:
+                        if "episodio" in c.lower():
+                            episodio_col = c
+                            break
+
             if episodio_col:
                 logger.info(
                     f"Encontrada columna de episodio '{episodio_col}' en {file_name}"
@@ -153,7 +170,7 @@ class ExcelProcessor:
 
     def combine_data(self) -> bool:
         """
-        Combina datos de los tres archivos Excel usando episodio_cmbd como clave
+        Combina datos de los cuatro archivos Excel usando episodio_cmbd como clave
         Con mapeos específicos para cada modelo
 
         Returns:
@@ -165,6 +182,7 @@ class ExcelProcessor:
                     self.excel1_df is not None,
                     self.excel2_df is not None,
                     self.excel3_df is not None,
+                    self.excel4_df is not None,
                 ]
             ):
                 logger.error("No todos los archivos están cargados")
@@ -176,11 +194,12 @@ class ExcelProcessor:
             excel1_clean = self._clean_episodio_data(self.excel1_df.copy(), "excel1")
             excel2_clean = self._clean_episodio_data(self.excel2_df.copy(), "excel2")
             excel3_clean = self._clean_episodio_data(self.excel3_df.copy(), "excel3")
+            excel4_clean = self._clean_episodio_data(self.excel4_df.copy(), "excel4")
 
             # Verificar que todos tengan la columna episodio_cmbd
             if not all(
                 "episodio_cmbd" in df.columns
-                for df in [excel1_clean, excel2_clean, excel3_clean]
+                for df in [excel1_clean, excel2_clean, excel3_clean, excel4_clean]
             ):
                 logger.error(
                     "No se pudo encontrar columna de episodio en todos los archivos"
@@ -259,6 +278,21 @@ class ExcelProcessor:
                 suffixes=("", "_excel3"),
             )
 
+            # Agregar datos de excel4 (información de score social)
+            excel4_cols = ["episodio_cmbd"]
+
+            if "Puntaje" in excel4_clean.columns:
+                excel4_cols.append("Puntaje")
+
+            excel4_mapped = excel4_clean[excel4_cols].copy()
+            combined = pd.merge(
+                combined,
+                excel4_mapped,
+                on="episodio_cmbd",
+                how="left",
+                suffixes=("", "_excel4"),
+            )
+
             self.combined_df = combined
 
             # Estadísticas de combinación
@@ -273,11 +307,17 @@ class ExcelProcessor:
                     subset=[col for col in combined.columns if col.endswith("_excel3")]
                 )
             )
+            episodios_con_excel4 = len(
+                combined.dropna(
+                    subset=[col for col in combined.columns if col.endswith("_excel4")]
+                )
+            )
 
             logger.info(f"Combinación completada:")
             logger.info(f"  - Total episodios: {total_episodios}")
             logger.info(f"  - Con datos de excel1: {episodios_con_excel1}")
             logger.info(f"  - Con datos de excel3: {episodios_con_excel3}")
+            logger.info(f"  - Con datos de excel4: {episodios_con_excel4}")
 
             return True
 
@@ -338,6 +378,7 @@ class ExcelProcessor:
             "Episodio",
             "cmbd",
             "CMBD",
+            "Episodio / Estadía",
         ]
 
         episodio_col = None
@@ -412,6 +453,7 @@ class ExcelProcessor:
                 "excel1": self.excel1_df is not None,
                 "excel2": self.excel2_df is not None,
                 "excel3": self.excel3_df is not None,
+                "excel4": self.excel4_df is not None,
             },
             "row_counts": {},
             "column_counts": {},
@@ -423,6 +465,7 @@ class ExcelProcessor:
             ("excel1", self.excel1_df),
             ("excel2", self.excel2_df),
             ("excel3", self.excel3_df),
+            ("excel4", self.excel4_df),
         ]:
             if df is not None:
                 summary["row_counts"][name] = len(df)
@@ -524,6 +567,7 @@ class ExcelProcessor:
                     "edad": self._extract_edad(row),
                     "fecha_nacimiento": self._extract_fecha_nacimiento(row),
                     "prevision": self._extract_prevision(row),
+                    "score_social": self._extract_puntaje(row),
                 }
                 pacientes_data.append(paciente_data)
 
@@ -667,6 +711,26 @@ class ExcelProcessor:
                             return parsed_date.strftime("%Y-%m-%d")
                         except ValueError:
                             continue
+        return ""
+
+    def _extract_puntaje(self, row) -> float:
+        """Extrae puntaje de diferentes columnas posibles, incluyendo columnas con sufijos"""
+        puntaje_columns = [
+            "Puntaje",
+            "puntaje",
+            "Score Social",
+            "score_social",
+            "Puntaje_excel4",
+            "puntaje_excel4",
+        ]
+        for col in puntaje_columns:
+            if col in row and not pd.isna(row[col]) and str(row[col]).strip() != "":
+                try:
+                    puntaje_val = str(row[col]).strip()
+                    if puntaje_val.lower() != "nan":
+                        return float(puntaje_val)
+                except (ValueError, TypeError):
+                    continue
         return ""
 
     def _prepare_episodios_data(self) -> pd.DataFrame:
@@ -991,7 +1055,7 @@ class ExcelProcessor:
 
         Args:
             file_paths: Dict con nombres de archivo -> rutas locales
-            Ejemplo: {'excel1': '/path/to/excel1.xlsx', 'excel2': '/path/to/excel2.xlsx', 'excel3': '/path/to/excel3.xlsx'}
+            Ejemplo: {'excel1': '/path/to/excel1.xlsx', 'excel2': '/path/to/excel2.xlsx', 'excel3': '/path/to/excel3.xlsx', 'excel4': '/path/to/excel4.xlsx'}
 
         Returns:
             Dict[str, pd.DataFrame]: DataFrames individuales para el DataMapper
@@ -1006,7 +1070,7 @@ class ExcelProcessor:
             raise ValueError("Error al cargar archivos Excel")
 
         logger.info(
-            f"Procesamiento completado: Excel1={len(self.excel1_df)}, Excel2={len(self.excel2_df)}, Excel3={len(self.excel3_df)} registros"
+            f"Procesamiento completado: Excel1={len(self.excel1_df)}, Excel2={len(self.excel2_df)}, Excel3={len(self.excel3_df)}, Excel4={len(self.excel4_df)} registros"
         )
 
         # Retornar DataFrames individuales en lugar de combinar
@@ -1021,6 +1085,9 @@ class ExcelProcessor:
 
         if self.excel3_df is not None and not self.excel3_df.empty:
             result["excel3"] = self.excel3_df
+
+        if self.excel4_df is not None and not self.excel4_df.empty:
+            result["excel4"] = self.excel4_df
 
         # Crear la combinación completa incluyendo Excel3
         if "excel1" in result and "excel2" in result:
@@ -1074,6 +1141,35 @@ class ExcelProcessor:
                     print(
                         f"[DEBUG] Combined después de Excel3: {list(combined_df.columns)}"
                     )
+
+            # Agregar score social desde Excel4 por episodio si existe
+            if "excel4" in result:
+                df4 = result["excel4"]
+
+                episodio_col_4 = "Episodio / Estadía"
+                puntaje_col = "Puntaje"
+
+                # 1. Normalizar tipos a string para evitar errores de merge
+                combined_df["CÓDIGO EPISODIO CMBD"] = combined_df[
+                    "CÓDIGO EPISODIO CMBD"
+                ].astype(str)
+                df4[episodio_col_4] = df4[episodio_col_4].astype(str)
+
+                # 2. Reducir Excel4 solo a episodio + puntaje
+                df4_reduced = df4[[episodio_col_4, puntaje_col]].copy()
+                df4_reduced = df4_reduced.rename(
+                    columns={
+                        episodio_col_4: "CÓDIGO EPISODIO CMBD",
+                        puntaje_col: "score_social",
+                    }
+                )
+
+                print(df4_reduced.head())
+
+                # 3. Merge LEFT para agregar score_social
+                combined_df = pd.merge(
+                    combined_df, df4_reduced, on="CÓDIGO EPISODIO CMBD", how="left"
+                )
 
             result["combined"] = combined_df
 

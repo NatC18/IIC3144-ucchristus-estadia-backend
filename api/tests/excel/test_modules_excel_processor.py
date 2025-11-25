@@ -18,7 +18,7 @@ def sample_excel_files(tmp_path):
     """Fixture: crea tres archivos Excel válidos con columnas realistas"""
     df1 = pd.DataFrame(
         {
-            "episodio_cmbd": ["EP001", "EP002"],
+            "CÓDIGO EPISODIO CMBD": ["EP001", "EP002"],
             "RUT": ["12.345.678-9", "98.765.432-1"],  # 🔹 agrega esta línea
             "Tipo Actividad": ["Consulta", "Urgencia"],
             "Estancia Inlier / Outlier": ["Inlier", "Outlier"],
@@ -45,13 +45,19 @@ def sample_excel_files(tmp_path):
             "MEDICO_TRATANTE": ["Dr. Juan", "Dra. María"],
         }
     )
+
+    df4 = pd.DataFrame(
+        {"Episodio / Estadía": ["EP001", "EP002"], "Puntaje": ["3", "7"]}
+    )
     path1 = tmp_path / "excel1.xlsx"
     path2 = tmp_path / "excel2.xlsx"
     path3 = tmp_path / "excel3.xlsx"
+    path4 = tmp_path / "excel4.xlsx"
     df1.to_excel(path1, index=False)
     df2.to_excel(path2, index=False)
     df3.to_excel(path3, index=False)
-    return {"excel1": path1, "excel2": path2, "excel3": path3}
+    df4.to_excel(path4, index=False)
+    return {"excel1": path1, "excel2": path2, "excel3": path3, "excel4": path4}
 
 
 # --- 🔹 Inicialización y carga ---
@@ -269,6 +275,7 @@ def test_get_data_summary_without_combined(monkeypatch):
     processor.excel1_df = pd.DataFrame({"episodio_cmbd": []})
     processor.excel2_df = pd.DataFrame({"episodio_cmbd": []})
     processor.excel3_df = pd.DataFrame({"episodio_cmbd": []})
+    processor.excel4_df = pd.DataFrame({"episodio_cmbd": []})
 
     summary = processor.get_data_summary()
     assert isinstance(summary, dict)
@@ -285,7 +292,12 @@ def test_logger_called_on_error(monkeypatch, caplog):
         raise Exception("error for test")
 
     monkeypatch.setattr(processor, "_load_single_excel", bad_load_excel)
-    files = {"excel1": "fake1.xlsx", "excel2": "fake2.xlsx", "excel3": "fake3.xlsx"}
+    files = {
+        "excel1": "fake1.xlsx",
+        "excel2": "fake2.xlsx",
+        "excel3": "fake3.xlsx",
+        "excel4": "fake4.xlsx",
+    }
     with caplog.at_level(logging.ERROR):
         processor.load_excel_files(files)
     assert "error for test" in caplog.text or "Faltan archivos" in caplog.text
@@ -304,7 +316,12 @@ def test_returns_false_when_excel1_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1"]  # se corta antes de excel2
@@ -325,7 +342,12 @@ def test_returns_false_when_excel2_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1", "excel2"]
@@ -346,7 +368,12 @@ def test_returns_false_when_excel3_fails(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", fake_loader)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
     assert calls == ["excel1", "excel2", "excel3"]
@@ -368,7 +395,12 @@ def test_load_excel_files_exception_during_excel1(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel1)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
 
@@ -386,7 +418,12 @@ def test_load_excel_files_exception_during_excel2(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel2)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False
 
@@ -404,6 +441,11 @@ def test_load_excel_files_exception_during_excel3(monkeypatch, processor):
 
     monkeypatch.setattr(processor, "_load_single_excel", raise_on_excel3)
     result = processor.load_excel_files(
-        {"excel1": "mock1.xlsx", "excel2": "mock2.xlsx", "excel3": "mock3.xlsx"}
+        {
+            "excel1": "mock1.xlsx",
+            "excel2": "mock2.xlsx",
+            "excel3": "mock3.xlsx",
+            "excel4": "mock4.xlsx",
+        }
     )
     assert result is False

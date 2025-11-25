@@ -128,6 +128,9 @@ class DataMapper:
                 sexo_desc = self._safe_get(row, "Sexo  (Desc)")
                 sexo = self._map_sexo(sexo_desc)
 
+                # Extraer score social desde Excel 4 (columna 'score_social')
+                score_social = self._safe_get(row, "score_social")
+
                 paciente_data = {
                     "rut": rut,
                     "nombre": self._extract_nombre_from_row(row),
@@ -136,7 +139,7 @@ class DataMapper:
                     "prevision_1": prevision_1,
                     "prevision_2": prevision_2,
                     "convenio": self._safe_get(row, "Convenio"),
-                    "score_social": None,
+                    "score_social": score_social,
                 }
 
                 if paciente_data["rut"] and paciente_data["nombre"]:
