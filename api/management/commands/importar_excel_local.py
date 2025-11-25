@@ -73,6 +73,8 @@ class Command(BaseCommand):
             self.stdout.write("🔄 Procesando archivos Excel...")
             excel_processor = ExcelProcessor()
             processed_data = excel_processor.process_local_files(excel_files)
+            print("[DEBUG]: processed data keys", processed_data.keys())
+            print("[DEBUG]: processed data sample", {k: v.head() for k, v in processed_data.items()})
 
             if self.verbosity >= 2:
                 total_records = sum(len(df) for df in processed_data.values())

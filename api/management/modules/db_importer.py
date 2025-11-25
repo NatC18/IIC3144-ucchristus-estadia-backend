@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from api.models import Cama, Episodio, Gestion, Paciente
+from api.models import Cama, Episodio, Gestion, Paciente, Servicio, EpisodioServicio
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -333,6 +333,13 @@ class DatabaseImporter:
                 if created:
                     self.results["episodios"]["created"] += 1
                     logger.debug(f"Episodio creado: {episodio_cmbd}")
+
+                    # Si se creó, se debe crear la relación entre episodio y servicio
+                    servicio = self._find_servicio(episodio_data)
+                    if servicio:
+                        episodio.servicio = servicio
+                        episodio.save()
+                        logger.debug(f"Relación creada entre episodio {episodio_cmbd} y servicio {servicio.id}")
                 else:
                     # Actualizar si es necesario
                     updated = False
@@ -540,6 +547,24 @@ class DatabaseImporter:
         except User.DoesNotExist:
             logger.debug(f"No se encontró usuario con email: {email}")
             return None
+        
+    # Devuelve una lista de servicios asociados al episodio
+    def _find_servicio(self, episodio_data: Dict) -> Optional[List["Servicio"]]:
+        """
+        Busca los distintos servicios para el episodio (ingreso, traslado y egreso)
+
+        Args:
+            episodio_data: Datos del episodio
+
+        Returns:
+            Servicio o None si no se encuentra
+        """
+
+        servicio_ingreso_codigo = episodio_data.get("Servicio Ingreso (Código)")
+        servicio_traslados_codigos = episodio_data.get("Conjunto de Servicios Traslado")
+        servicio_egreso_codigo = episodio_data.get("Servicio Egreso (Código)_2")
+
+        
 
     def _import_transferencias(self, transferencias_data: List[Dict]) -> None:
         """
