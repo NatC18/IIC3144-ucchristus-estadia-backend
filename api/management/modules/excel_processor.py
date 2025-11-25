@@ -934,6 +934,38 @@ class ExcelProcessor:
                     "observaciones": self._extract_observaciones_gestion(row),
                     "usuario_responsable": self._extract_usuario_responsable(row),
                 }
+
+                # Agregar campos de traslado si es una gestión de tipo TRASLADO o TRANSFERENCIA
+                if tipo_gestion and str(tipo_gestion).lower() in [
+                    "traslado",
+                    "transferencia",
+                ]:
+                    estado_traslado = self._extract_estado_traslado(row)
+                    # Solo usar PENDIENTE como default si es una gestión de tipo TRASLADO
+                    gestion_data["estado_traslado"] = (
+                        estado_traslado if estado_traslado else "PENDIENTE"
+                    )
+                    gestion_data["tipo_traslado"] = self._extract_tipo_traslado(row)
+                    gestion_data["motivo_traslado"] = self._extract_motivo_traslado(row)
+                    gestion_data["centro_destinatario"] = (
+                        self._extract_centro_destinatario(row)
+                    )
+                    gestion_data["tipo_solicitud_traslado"] = (
+                        self._extract_tipo_solicitud_traslado(row)
+                    )
+                    gestion_data["nivel_atencion_traslado"] = (
+                        self._extract_nivel_atencion_traslado(row)
+                    )
+                    gestion_data["motivo_rechazo_traslado"] = (
+                        self._extract_motivo_rechazo_traslado(row)
+                    )
+                    gestion_data["motivo_cancelacion_traslado"] = (
+                        self._extract_motivo_cancelacion_traslado(row)
+                    )
+                    gestion_data["fecha_finalizacion_traslado"] = (
+                        self._extract_fecha_finalizacion_traslado(row)
+                    )
+
                 gestiones_data.append(gestion_data)
 
         if not gestiones_data:
@@ -972,8 +1004,8 @@ class ExcelProcessor:
         fecha_columns = [
             "Fecha Inicio:",
             "fecha_inicio_gestion",
-            "Fecha admisión",
             "FECHA_CARGA",
+            "Marco Temporal",
         ]
         for col in fecha_columns:
             if col in row and not pd.isna(row[col]):
@@ -1045,6 +1077,159 @@ class ExcelProcessor:
         for col in usuario_columns:
             if col in row and not pd.isna(row[col]):
                 return str(row[col]).strip()
+        return ""
+
+    # Métodos para extraer campos de traslado
+    def _extract_estado_traslado(self, row) -> str:
+        """Extrae estado del traslado ('Estado' en GestionEstadia)"""
+        estado_columns = ["Estado", "estado", "status"]
+        for col in estado_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip().upper()
+                if valor and valor != "NAN":
+                    return valor
+        return ""
+
+    def _extract_tipo_traslado(self, row) -> str:
+        """Extrae tipo de traslado ('Tipo de Traslado' en GestionEstadia)"""
+        tipo_columns = ["Tipo de Traslado", "tipo_traslado", "tipo_de_traslado"]
+        for col in tipo_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_motivo_traslado(self, row) -> str:
+        """Extrae motivo del traslado ('Motivo de traslado' en GestionEstadia)"""
+        motivo_columns = ["Motivo de traslado", "motivo_traslado", "razon_traslado"]
+        for col in motivo_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_centro_destinatario(self, row) -> str:
+        """Extrae centro destinatario ('Centro de Destinatario' en GestionEstadia)"""
+        centro_columns = ["Centro de Destinatario", "centro_destinatario", "destino"]
+        for col in centro_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_tipo_solicitud_traslado(self, row) -> str:
+        """Extrae tipo de solicitud ('Tipo de Solicitud' en GestionEstadia)"""
+        solicitud_columns = [
+            "Tipo de Solicitud",
+            "tipo_solicitud",
+            "tipo_solicitud_traslado",
+        ]
+        for col in solicitud_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_nivel_atencion_traslado(self, row) -> str:
+        """Extrae nivel de atención ('Nivel de atencion' en GestionEstadia)"""
+        nivel_columns = ["Nivel de atencion", "nivel_atencion", "nivel"]
+        for col in nivel_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_motivo_rechazo_traslado(self, row) -> str:
+        """Extrae motivo de rechazo ('Motivo de Rechazo' en GestionEstadia)"""
+        rechazo_columns = ["Motivo de Rechazo", "motivo_rechazo", "razon_rechazo"]
+        for col in rechazo_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_motivo_cancelacion_traslado(self, row) -> str:
+        """Extrae motivo de cancelación ('Motivo de Cancelación' en GestionEstadia)"""
+        cancelacion_columns = [
+            "Motivo de Cancelación",
+            "motivo_cancelacion",
+            "razon_cancelacion",
+        ]
+        for col in cancelacion_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    return valor
+        return ""
+
+    def _extract_fecha_finalizacion_traslado(self, row) -> str:
+        """
+        Extrae fecha de finalización del traslado combinando 'Fecha de Finalización' y 'Hora de Finalización'
+        Formato esperado: fecha "12/13/2023" y hora "1:41:00 PM"
+        """
+        # Buscar columnas de fecha y hora
+        fecha_col = None
+        hora_col = None
+
+        fecha_columns = ["Fecha de Finalización", "fecha_finalizacion", "fecha_fin"]
+        for col in fecha_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    fecha_col = valor
+                    break
+
+        hora_columns = ["Hora de Finalización", "hora_finalizacion", "hora_fin"]
+        for col in hora_columns:
+            if col in row and not pd.isna(row[col]):
+                valor = str(row[col]).strip()
+                if valor and valor.lower() != "nan":
+                    hora_col = valor
+                    break
+
+        if not fecha_col:
+            return ""
+
+        try:
+            # Intentar parsear fecha y hora
+            if hora_col:
+                # Combinar fecha y hora
+                fecha_hora_str = f"{fecha_col} {hora_col}"
+                # Intentar diferentes formatos
+                formatos = [
+                    "%m/%d/%Y %I:%M:%S %p",  # "12/13/2023 1:41:00 PM"
+                    "%m/%d/%Y %I:%M %p",  # "12/13/2023 1:41 PM"
+                    "%m/%d/%Y %H:%M:%S",  # "12/13/2023 13:41:00"
+                    "%m/%d/%Y %H:%M",  # "12/13/2023 13:41"
+                ]
+                for fmt in formatos:
+                    try:
+                        fecha_dt = datetime.strptime(fecha_hora_str, fmt)
+                        return fecha_dt.isoformat()
+                    except ValueError:
+                        continue
+                # Si ningún formato funciona, intentar con pandas
+                try:
+                    fecha_dt = pd.to_datetime(fecha_hora_str)
+                    return fecha_dt.isoformat()
+                except:
+                    pass
+            else:
+                # Solo fecha
+                try:
+                    fecha_dt = pd.to_datetime(fecha_col)
+                    return fecha_dt.date().isoformat()
+                except:
+                    pass
+        except Exception as e:
+            logger.warning(f"Error parseando fecha de finalización de traslado: {e}")
+
         return ""
 
     def process_local_files(

@@ -34,8 +34,8 @@ class TestDataMapperGestionesCombined:
 
         gestiones = mapper._map_gestiones_from_combined(sample_combined_df)
 
-        # Se espera mapear 2 gestiones (transferencia y None se ignoran)
-        assert len(gestiones) == 2
+        # Se espera mapear 3 gestiones (None se ignora, Transferencia se mapea como TRASLADO)
+        assert len(gestiones) == 3
 
         g1 = gestiones[0]
         assert g1["episodio_cmbd"] == 101
@@ -45,13 +45,19 @@ class TestDataMapperGestionesCombined:
         assert g1["informe"] == "Informe 1"
 
         g2 = gestiones[1]
-        assert g2["episodio_cmbd"] == 103
-        assert g2["tipo_gestion"] == "COBERTURA"
+        assert g2["episodio_cmbd"] == 102
+        assert g2["tipo_gestion"] == "TRASLADO"  # Transferencia ahora es TRASLADO
         assert g2["estado_gestion"] == "INICIADA"
+        assert "estado_traslado" in g2  # Debe incluir campos de traslado
+
+        g3 = gestiones[2]
+        assert g3["episodio_cmbd"] == 103
+        assert g3["tipo_gestion"] == "COBERTURA"
+        assert g3["estado_gestion"] == "INICIADA"
         # Fecha admisión es None, debe usar ahora
-        assert g2["fecha_inicio"] == fixed_now
+        assert g3["fecha_inicio"] == fixed_now
         # Informe es None -> generar por defecto
-        assert g2["informe"] == "Gestión de tipo Cobertura"
+        assert g3["informe"] == "Gestión de tipo Cobertura"
 
     def test_skip_missing_column(self):
         # Si la columna de gestión no existe, se retorna lista vacía
@@ -60,7 +66,8 @@ class TestDataMapperGestionesCombined:
         gestiones = mapper._map_gestiones_from_combined(df)
         assert gestiones == []
 
-    def test_skip_transferencias(self):
+    def test_transferencia_mapped_as_traslado(self):
+        """Transferencia debe mapearse como TRASLADO en gestiones"""
         data = {
             "CÓDIGO EPISODIO CMBD": [101, 102],
             "¿Qué gestión se solicito?": ["Transferencia", "homecare"],
@@ -71,9 +78,10 @@ class TestDataMapperGestionesCombined:
         mapper = DataMapper()
         gestiones = mapper._map_gestiones_from_combined(df)
 
-        # Solo la segunda gestión se mapea
-        assert len(gestiones) == 1
-        assert gestiones[0]["tipo_gestion"] == "HOMECARE"
+        # Ambas gestiones se mapean
+        assert len(gestiones) == 2
+        assert gestiones[0]["tipo_gestion"] == "TRASLADO"  # Transferencia es TRASLADO
+        assert gestiones[1]["tipo_gestion"] == "HOMECARE"
 
 
 class TestDataMapperGestiones:

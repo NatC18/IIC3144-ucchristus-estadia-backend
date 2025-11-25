@@ -409,7 +409,7 @@ class DatabaseImporter:
                 # Buscar usuario si se especifica
                 usuario = self._find_usuario(gestion_data.get("usuario_email"))
 
-                # Crear gestión
+                # Crear gestión con todos los campos disponibles
                 gestion_data_clean = {
                     "episodio": episodio,
                     "usuario": usuario,
@@ -419,6 +419,45 @@ class DatabaseImporter:
                     "fecha_fin": gestion_data.get("fecha_fin"),
                     "informe": gestion_data.get("informe"),
                 }
+
+                # Agregar campos de traslado si existen
+                # estado_traslado solo se incluye si existe y tipo_gestion es TRASLADO
+                if gestion_data.get("estado_traslado"):
+                    gestion_data_clean["estado_traslado"] = gestion_data.get(
+                        "estado_traslado"
+                    )
+                if gestion_data.get("tipo_traslado"):
+                    gestion_data_clean["tipo_traslado"] = gestion_data.get(
+                        "tipo_traslado"
+                    )
+                if gestion_data.get("motivo_traslado"):
+                    gestion_data_clean["motivo_traslado"] = gestion_data.get(
+                        "motivo_traslado"
+                    )
+                if gestion_data.get("centro_destinatario"):
+                    gestion_data_clean["centro_destinatario"] = gestion_data.get(
+                        "centro_destinatario"
+                    )
+                if gestion_data.get("tipo_solicitud_traslado"):
+                    gestion_data_clean["tipo_solicitud_traslado"] = gestion_data.get(
+                        "tipo_solicitud_traslado"
+                    )
+                if gestion_data.get("nivel_atencion_traslado"):
+                    gestion_data_clean["nivel_atencion_traslado"] = gestion_data.get(
+                        "nivel_atencion_traslado"
+                    )
+                if gestion_data.get("motivo_rechazo_traslado"):
+                    gestion_data_clean["motivo_rechazo_traslado"] = gestion_data.get(
+                        "motivo_rechazo_traslado"
+                    )
+                if gestion_data.get("motivo_cancelacion_traslado"):
+                    gestion_data_clean["motivo_cancelacion_traslado"] = (
+                        gestion_data.get("motivo_cancelacion_traslado")
+                    )
+                if gestion_data.get("fecha_finalizacion_traslado"):
+                    gestion_data_clean["fecha_finalizacion_traslado"] = (
+                        gestion_data.get("fecha_finalizacion_traslado")
+                    )
 
                 # Filtrar valores None
                 gestion_data_clean = {
@@ -543,18 +582,6 @@ class DatabaseImporter:
         except User.DoesNotExist:
             logger.debug(f"No se encontró usuario con email: {email}")
             return None
-
-    def _import_transferencias(self, transferencias_data: List[Dict]) -> None:
-        """
-        Importa datos de transferencias (DEPRECATED - Transferencia model fue removido)
-
-        Args:
-            transferencias_data: Lista de datos de transferencias
-        """
-        logger.info(f"Importando {len(transferencias_data)} transferencias (DEPRECATED)...")
-        # Este método ya no hace nada ya que el modelo Transferencia fue removido
-        # Las transferencias ahora se manejan a través de gestiones de tipo TRASLADO
-        pass
 
     def _get_results_summary(self) -> Dict:
         """
