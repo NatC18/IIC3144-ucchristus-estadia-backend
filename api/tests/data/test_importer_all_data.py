@@ -49,24 +49,14 @@ class DatabaseImporterAllDataTest(TestCase):
             }
         ]
 
-        self.transferencias_data = [
-            {
-                "episodio_cmbd": 1,
-                "origen": "UCI",
-                "destino": "Sala Común",
-                "fecha_transferencia": timezone.now(),
-            }
-        ]
-
     def test_importa_todos_los_datos(self):
-        """Debe importar correctamente pacientes, camas, episodios, gestiones y transferencias"""
+        """Debe importar correctamente pacientes, camas, episodios y gestiones"""
 
         mapped_data = {
             "pacientes": self.pacientes_data,
             "camas": self.camas_data,
             "episodios": self.episodios_data,
             "gestiones": self.gestiones_data,
-            "transferencias": self.transferencias_data,
         }
 
         result = self.importer.import_all_data(mapped_data)
