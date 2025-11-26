@@ -495,6 +495,7 @@ class DataMapper:
         import re
 
         servicios_traslado = []
+        servicios = []
 
         servicio_traslados = self._safe_get(row, "Conjunto de Servicios Traslado")
         if servicio_traslados and isinstance(servicio_traslados, str):
