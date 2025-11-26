@@ -36,6 +36,14 @@ class Episodio(models.Model):
     estancia_postquirurgica = models.FloatField(blank=True, null=True)
     estancia_norma_grd = models.FloatField(blank=True, null=True)
 
+    # Predicción de extensión de estancia
+    # 0 = No se excede, 1 = Se excede
+    prediccion_extension = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text="Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede"
+    )
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
