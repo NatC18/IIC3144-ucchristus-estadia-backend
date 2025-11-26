@@ -4,11 +4,13 @@ scoring usando el modelo/metadata guardados en api/modelo.
 """
 
 import re
+
 import numpy as np
 import pandas as pd
 
-from .scoring import score_dataframe, load_preprocessing
 from api.models import Episodio
+
+from .scoring import load_preprocessing, score_dataframe
 
 
 def _to_float(series: pd.Series) -> pd.Series:
@@ -79,7 +81,14 @@ def build_features_from_grd(df_grd: pd.DataFrame) -> pd.DataFrame:
     """
     out = pd.DataFrame()
 
-    edad_col = next((c for c in ["Edad en años", "Edad en Años", "edad", "Edad"] if c in df_grd.columns), None)
+    edad_col = next(
+        (
+            c
+            for c in ["Edad en años", "Edad en Años", "edad", "Edad"]
+            if c in df_grd.columns
+        ),
+        None,
+    )
     if not edad_col:
         raise ValueError("Falta columna de edad en el GRD")
     out["edad"] = _to_float(df_grd[edad_col])
@@ -158,7 +167,9 @@ def run_scoring_from_grd(df_grd: pd.DataFrame, threshold: float | None = None):
     extra = [c for c in features_raw.columns if c not in feature_cols]
 
     print(f"✅ Validación columnas: faltan={missing}, extra={extra}")
-    print("🔍 Ejemplo de fila de entrada:", features_raw.head(1).to_dict(orient="records"))
+    print(
+        "🔍 Ejemplo de fila de entrada:", features_raw.head(1).to_dict(orient="records")
+    )
 
     # Aplicar encoders guardados (categóricas -> numéricas)
     features = _apply_encoders(features_raw, preproc)
@@ -167,7 +178,9 @@ def run_scoring_from_grd(df_grd: pd.DataFrame, threshold: float | None = None):
     return scored
 
 
-def persist_scores_to_episodios(df_grd: pd.DataFrame, threshold: float | None = None) -> int:
+def persist_scores_to_episodios(
+    df_grd: pd.DataFrame, threshold: float | None = None
+) -> int:
     """
     Ejecuta scoring desde el GRD y actualiza Episodio.prediccion_extension.
     Devuelve la cantidad de episodios actualizados.
@@ -216,4 +229,8 @@ def persist_scores_to_episodios(df_grd: pd.DataFrame, threshold: float | None = 
     return updated
 
 
-__all__ = ["build_features_from_grd", "run_scoring_from_grd", "persist_scores_to_episodios"]
+__all__ = [
+    "build_features_from_grd",
+    "run_scoring_from_grd",
+    "persist_scores_to_episodios",
+]
