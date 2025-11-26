@@ -291,8 +291,6 @@ class DataMapper:
                     ],
                 }
 
-                print("[DEBUG] Episodio mapeado:", episodio_data)
-
                 if episodio_data["episodio_cmbd"] and episodio_data["rut_paciente"]:
                     episodios.append(episodio_data)
                     logger.debug(
@@ -486,7 +484,6 @@ class DataMapper:
 
         elif tipo == "Egreso":
             servicio = self._safe_get(row, "Servicio Egreso (Código)_2")
-            print("[DEBUG] Servicio Egreso (Código)_2:", servicio)
             if servicio and str(servicio) != "nan":
                 return str(servicio).strip()
 

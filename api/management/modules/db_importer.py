@@ -353,10 +353,7 @@ class DatabaseImporter:
                         self.results["episodios"]["updated"] += 1
                         logger.debug(f"Episodio actualizado: {episodio_cmbd}")
 
-                # servicios = self._extraer_servicios(episodio_data)
                 # Actualizar servicios asociados al episodio
-
-                print("Actualizando servicios para episodio:", episodio_cmbd)
 
                 servicios = episodio_data.get("servicios", [])
                 self._asociar_servicios(episodio, servicios)
