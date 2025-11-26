@@ -589,7 +589,6 @@ class DatabaseImporter:
             logger.debug(f"No se encontró usuario con email: {email}")
             return None
 
-
     def _find_servicio_by_codigo(self, codigo: str) -> Optional[Servicio]:
         """
         Busca servicio por código
@@ -659,7 +658,6 @@ class DatabaseImporter:
                 f"{contador} servicios asociados al episodio {episodio.episodio_cmbd}"
             )
 
-   
     def _get_results_summary(self) -> Dict:
         """
         Genera resumen de resultados
