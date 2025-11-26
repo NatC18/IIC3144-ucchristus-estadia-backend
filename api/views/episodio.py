@@ -11,11 +11,12 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Episodio
+from api.models import Episodio, EpisodioServicio
 from api.serializers import (
     EpisodioCreateSerializer,
     EpisodioSerializer,
     EpisodioUpdateSerializer,
+    EpisodioServicioSerializer,
 )
 
 
@@ -192,3 +193,18 @@ class EpisodioViewSet(viewsets.ModelViewSet):
             )
 
         return Response(resultado)
+    
+    @action(detail=True, methods=["get"], url_path="servicios")
+    def servicios(self, request, pk=None):
+        """
+        Devuelve todos los servicios asociados al episodio.
+        """
+        relaciones = (
+            EpisodioServicio.objects
+            .filter(episodio_id=pk)
+            .select_related("servicio")
+            .order_by("tipo")
+        )
+
+        serializer = EpisodioServicioSerializer(relaciones, many=True)
+        return Response(serializer.data)

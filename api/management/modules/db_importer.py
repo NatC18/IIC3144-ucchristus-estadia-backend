@@ -570,37 +570,42 @@ class DatabaseImporter:
             return None
 
     def _check_episodio_servicio(
-        self, episodio: Episodio, servicio_codigo: str
+        self, episodio: Episodio, servicio_codigo: str, servicio_tipo: str = None
     ) -> bool:
         """
-        Verifica si un servicio con cierto código ya está asociado al episodio.
+        Verifica si un servicio con cierto código y tipo ya está asociado al episodio.
 
         Args:
             episodio: Episodio actual
             servicio_codigo: Código del servicio a buscar
+            tipo: Tipo de la relación (INGRESO, TRASLADO, EGRESO)
 
         Returns:
             True si existe relación, False si no
         """
-        return episodio.servicios.filter(servicio__codigo=servicio_codigo).exists()
+        return episodio.servicios.filter(
+            servicio__codigo=servicio_codigo,
+            tipo=servicio_tipo,
+        ).exists()
 
     def _asociar_servicios(self, episodio, servicios):
         contador = 0
 
         for info in servicios:
             codigo = info.get("codigo")
+            tipo = info.get("tipo")
             if not codigo:
                 continue
 
-            if self._check_episodio_servicio(episodio, codigo):
+            if self._check_episodio_servicio(episodio, codigo, tipo):
                 continue
 
             servicio = self._find_servicio_by_codigo(codigo)
             if not servicio:
                 logger.warning(f"Servicio {codigo} no encontrado")
                 continue
-
-            EpisodioServicio.objects.create(
+            
+            episodio_servicio = EpisodioServicio.objects.create(
                 episodio=episodio,
                 servicio=servicio,
                 fecha=info.get("fecha"),
