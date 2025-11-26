@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from api.models import Cama, Episodio, Gestion, Paciente
+from api.models import Cama, Episodio, EpisodioServicio, Gestion, Paciente, Servicio
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -336,6 +336,7 @@ class DatabaseImporter:
                 if created:
                     self.results["episodios"]["created"] += 1
                     logger.debug(f"Episodio creado: {episodio_cmbd}")
+
                 else:
                     # Actualizar si es necesario
                     updated = False
@@ -354,6 +355,11 @@ class DatabaseImporter:
                         episodio.save()
                         self.results["episodios"]["updated"] += 1
                         logger.debug(f"Episodio actualizado: {episodio_cmbd}")
+
+                # Actualizar servicios asociados al episodio
+
+                servicios = episodio_data.get("servicios", [])
+                self._asociar_servicios(episodio, servicios)
 
                 # Actualizar el mapeo para otros episodios
                 self.episodio_to_paciente[episodio_cmbd] = paciente
@@ -544,6 +550,75 @@ class DatabaseImporter:
             logger.debug(f"No se encontró usuario con email: {email}")
             return None
 
+    def _find_servicio_by_codigo(self, codigo: str) -> Optional[Servicio]:
+        """
+        Busca servicio por código
+
+        Args:
+            codigo: Código del servicio
+
+        Returns:
+            Servicio o None si no se encuentra
+        """
+        if not codigo:
+            return None
+
+        try:
+            return Servicio.objects.get(codigo=codigo)
+        except Servicio.DoesNotExist:
+            logger.debug(f"No se encontró servicio con código: {codigo}")
+            return None
+
+    def _check_episodio_servicio(
+        self, episodio: Episodio, servicio_codigo: str, servicio_tipo: str = None
+    ) -> bool:
+        """
+        Verifica si un servicio con cierto código y tipo ya está asociado al episodio.
+
+        Args:
+            episodio: Episodio actual
+            servicio_codigo: Código del servicio a buscar
+            tipo: Tipo de la relación (INGRESO, TRASLADO, EGRESO)
+
+        Returns:
+            True si existe relación, False si no
+        """
+        return episodio.servicios.filter(
+            servicio__codigo=servicio_codigo,
+            tipo=servicio_tipo,
+        ).exists()
+
+    def _asociar_servicios(self, episodio, servicios):
+        contador = 0
+
+        for info in servicios:
+            codigo = info.get("codigo")
+            tipo = info.get("tipo")
+            if not codigo:
+                continue
+
+            if self._check_episodio_servicio(episodio, codigo, tipo):
+                continue
+
+            servicio = self._find_servicio_by_codigo(codigo)
+            if not servicio:
+                logger.warning(f"Servicio {codigo} no encontrado")
+                continue
+
+            episodio_servicio = EpisodioServicio.objects.create(
+                episodio=episodio,
+                servicio=servicio,
+                fecha=info.get("fecha"),
+                tipo=info.get("tipo"),
+            )
+
+            contador += 1
+
+        if contador:
+            logger.info(
+                f"{contador} servicios asociados al episodio {episodio.episodio_cmbd}"
+            )
+
     def _import_transferencias(self, transferencias_data: List[Dict]) -> None:
         """
         Importa datos de transferencias (DEPRECATED - Transferencia model fue removido)
@@ -551,7 +626,9 @@ class DatabaseImporter:
         Args:
             transferencias_data: Lista de datos de transferencias
         """
-        logger.info(f"Importando {len(transferencias_data)} transferencias (DEPRECATED)...")
+        logger.info(
+            f"Importando {len(transferencias_data)} transferencias (DEPRECATED)..."
+        )
         # Este método ya no hace nada ya que el modelo Transferencia fue removido
         # Las transferencias ahora se manejan a través de gestiones de tipo TRASLADO
         pass
