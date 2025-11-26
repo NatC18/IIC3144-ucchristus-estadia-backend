@@ -41,7 +41,7 @@ class Episodio(models.Model):
     prediccion_extension = models.IntegerField(
         blank=True,
         null=True,
-        help_text="Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede"
+        help_text="Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede",
     )
 
     # Timestamps
