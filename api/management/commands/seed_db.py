@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 from api.seeds.camas import create_camas
 from api.seeds.episodios_gestiones import create_episodios_y_gestiones
 from api.seeds.pacientes import create_pacientes
+from api.seeds.servicios import create_servicios
 from api.seeds.users import create_users
 
 
@@ -75,6 +76,9 @@ class Command(BaseCommand):
         create_episodios_y_gestiones()
         self.stdout.write("")
 
+        create_servicios()
+        self.stdout.write("")
+
     def _run_specific_seed(self, seed_type):
         """Ejecuta un seed específico"""
         self.stdout.write(f"📝 Ejecutando seed específico: {seed_type}\n")
@@ -87,5 +91,7 @@ class Command(BaseCommand):
             create_camas()
         elif seed_type == "episodios":
             create_episodios_y_gestiones()
+        elif seed_type == "servicios":
+            create_servicios()
 
         self.stdout.write("")
