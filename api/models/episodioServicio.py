@@ -22,7 +22,7 @@ class EpisodioServicio(models.Model):
     episodio = models.ForeignKey(
         "Episodio", on_delete=models.CASCADE, related_name="servicios"
     )
-    fecha = models.DateTimeField()
+    fecha = models.DateTimeField(null=True, blank=True)
     tipo = models.CharField(max_length=20)
     orden_traslado = models.IntegerField(blank=True, null=True)
 

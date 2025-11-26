@@ -22,7 +22,6 @@ class DataMapper:
             "pacientes": [],
             "episodios": [],
             "gestiones": [],
-            "transferencias": [],
             "camas": [],
         }
 
@@ -56,16 +55,12 @@ class DataMapper:
                 self.mapped_data["gestiones"] = self._map_gestiones_from_combined(
                     combined_df
                 )
-                self.mapped_data["transferencias"] = (
-                    self._map_transferencias_from_combined(combined_df)
-                )
 
             # Estadísticas
             stats = {
                 "pacientes": len(self.mapped_data["pacientes"]),
                 "episodios": len(self.mapped_data["episodios"]),
                 "gestiones": len(self.mapped_data["gestiones"]),
-                "transferencias": len(self.mapped_data["transferencias"]),
                 "camas": len(self.mapped_data["camas"]),
             }
             logger.info(f"Mapeo completado: {stats}")
@@ -251,6 +246,10 @@ class DataMapper:
                     # No hay fecha de alta en Excel2, el episodio sigue abierto
                     fecha_egreso = None
 
+                servicio_ingreso = self._extract_servicios(row, "Ingreso")
+                servicios_traslado = self._extract_servicios_traslado(row)
+                servicio_egreso = self._extract_servicios(row, "Egreso")
+
                 episodio_data = {
                     "episodio_cmbd": self._convert_to_int(
                         self._safe_get(row, "CÓDIGO EPISODIO CMBD")
@@ -275,6 +274,19 @@ class DataMapper:
                         row, "Estancia Norma GRD"
                     ),
                     "codigo_cama": self._extract_codigo_cama_from_row(row),
+                    "servicios": [
+                        {
+                            "codigo": servicio_ingreso,
+                            "fecha": fecha_ingreso,
+                            "tipo": "INGRESO",
+                        },
+                        *servicios_traslado,
+                        {
+                            "codigo": servicio_egreso,
+                            "fecha": fecha_egreso,
+                            "tipo": "EGRESO",
+                        },
+                    ],
                 }
 
                 if episodio_data["episodio_cmbd"] and episodio_data["rut_paciente"]:
@@ -312,15 +324,12 @@ class DataMapper:
                 if not tipo_gestion_raw or str(tipo_gestion_raw) == "nan":
                     continue
 
-                # Saltear transferencias - se manejan separadamente
-                if str(tipo_gestion_raw).lower() == "transferencia":
-                    continue
-
                 # Mapear tipos de gestión a los valores del modelo
                 tipo_gestion_mapping = {
                     "homecare uccc": "HOMECARE_UCCC",
                     "homecare": "HOMECARE",
                     "traslado": "TRASLADO",
+                    "transferencia": "TRASLADO",  # Transferencia ahora es TRASLADO
                     "activación beneficio isapre": "ACTIVACION_BENEFICIO_ISAPRE",
                     "autorización procedimiento": "AUTORIZACION_PROCEDIMIENTO",
                     "cobertura": "COBERTURA",
@@ -353,6 +362,43 @@ class DataMapper:
                     or f"Gestión de tipo {tipo_gestion_raw}",
                 }
 
+                # Agregar campos de traslado si es una gestión de tipo TRASLADO
+                if tipo_gestion == "TRASLADO":
+                    estado_traslado = self._safe_get(row, "Estado")
+                    # Solo usar PENDIENTE como default si es una gestión de tipo TRASLADO
+                    gestion_data["estado_traslado"] = (
+                        estado_traslado
+                        if estado_traslado and str(estado_traslado) != "nan"
+                        else "PENDIENTE"
+                    )
+                    gestion_data["tipo_traslado"] = self._safe_get(
+                        row, "Tipo de Traslado"
+                    )
+                    gestion_data["motivo_traslado"] = self._safe_get(
+                        row, "Motivo de traslado"
+                    )
+                    gestion_data["centro_destinatario"] = self._safe_get(
+                        row, "Centro de Destinatario"
+                    )
+                    gestion_data["tipo_solicitud_traslado"] = self._safe_get(
+                        row, "Tipo de Solicitud"
+                    )
+                    gestion_data["nivel_atencion_traslado"] = self._safe_get(
+                        row, "Nivel de atencion"
+                    )
+                    gestion_data["motivo_rechazo_traslado"] = self._safe_get(
+                        row, "Motivo de Rechazo"
+                    )
+                    gestion_data["motivo_cancelacion_traslado"] = self._safe_get(
+                        row, "Motivo de Cancelación"
+                    )
+                    gestion_data["fecha_finalizacion_traslado"] = (
+                        self._parse_traslado_finalization_date(
+                            self._safe_get(row, "Fecha de Finalización"),
+                            self._safe_get(row, "Hora de Finalización"),
+                        )
+                    )
+
                 if gestion_data["episodio_cmbd"]:
                     gestiones.append(gestion_data)
                     logger.debug(
@@ -366,52 +412,65 @@ class DataMapper:
         logger.info(f"Mapeadas {len(gestiones)} gestiones")
         return gestiones
 
-    def _map_transferencias_from_combined(self, df: pd.DataFrame) -> List[Dict]:
-        """
-        Mapea datos de transferencias desde el DataFrame combinado
-        """
-        transferencias = []
-        logger.info(f"Mapeando transferencias desde {len(df)} registros combinados")
-
-        gestion_col = "¿Qué gestión se solicito?"
-        if gestion_col not in df.columns:
-            logger.warning(f"Columna '{gestion_col}' no encontrada")
-            return transferencias
-
-        # Filtrar solo registros de transferencia
-        transferencia_df = df[df[gestion_col] == "Transferencia"]
-
-        for idx, row in transferencia_df.iterrows():
-            try:
-                transferencia_data = {
-                    "episodio_cmbd": self._convert_to_int(
-                        self._safe_get(row, "CÓDIGO EPISODIO CMBD")
-                    ),
-                    "estado": self._safe_get(row, "Estado", "PENDIENTE"),
-                    "motivo_cancelacion": self._safe_get(row, "Motivo de Cancelación"),
-                    "motivo_rechazo": self._safe_get(row, "Motivo de Rechazo"),
-                    "tipo_traslado": self._safe_get(row, "Tipo de Traslado"),
-                    "motivo_traslado": self._safe_get(row, "Motivo de traslado"),
-                    "centro_destinatario": self._safe_get(
-                        row, "Centro de Destinatario"
-                    ),
-                    "fecha_solicitud": self._parse_date_universal(
-                        self._safe_get(row, "Fecha admisión")
-                    ),
-                    "tipo_solicitud": self._safe_get(row, "Tipo de Solicitud"),
-                }
-
-                if transferencia_data["episodio_cmbd"]:
-                    transferencias.append(transferencia_data)
-
-            except Exception as e:
-                logger.warning(f"Error mapeando transferencia en fila {idx}: {str(e)}")
-                continue
-
-        logger.info(f"Mapeadas {len(transferencias)} transferencias")
-        return transferencias
-
     # Métodos de utilidad
+    def _parse_traslado_finalization_date(
+        self, fecha_str: Any, hora_str: Any
+    ) -> Optional[datetime]:
+        """
+        Combina fecha y hora de finalización de traslado
+        Formato esperado: fecha "12/13/2023" y hora "1:41:00 PM"
+
+        Args:
+            fecha_str: Fecha en formato "MM/DD/YYYY"
+            hora_str: Hora en formato "H:MM:SS AM/PM"
+
+        Returns:
+            datetime combinado o None si no hay datos
+        """
+        if not fecha_str or pd.isna(fecha_str) or str(fecha_str) == "nan":
+            return None
+
+        try:
+            # Parsear la fecha
+            fecha = self._parse_date_universal(fecha_str)
+            if not fecha:
+                return None
+
+            # Si no hay hora, retornar solo la fecha a medianoche
+            if not hora_str or pd.isna(hora_str) or str(hora_str) == "nan":
+                return fecha
+
+            # Parsear la hora
+            hora_str_clean = str(hora_str).strip()
+
+            # Intentar diferentes formatos de hora
+            hora_formats = [
+                "%I:%M:%S %p",  # "1:41:00 PM"
+                "%I:%M %p",  # "1:41 PM"
+                "%H:%M:%S",  # "13:41:00"
+                "%H:%M",  # "13:41"
+            ]
+
+            hora_obj = None
+            for fmt in hora_formats:
+                try:
+                    hora_obj = datetime.strptime(hora_str_clean, fmt).time()
+                    break
+                except ValueError:
+                    continue
+
+            if hora_obj:
+                # Combinar fecha y hora
+                return datetime.combine(fecha.date(), hora_obj)
+
+            return fecha
+
+        except Exception as e:
+            logger.warning(
+                f"Error parseando fecha de finalización de traslado {fecha_str} {hora_str}: {e}"
+            )
+            return None
+
     def _extract_codigo_cama(self, cama_info: str) -> str:
         """Extrae el código de cama de la información de cama y habitación"""
         if not cama_info or str(cama_info) == "nan":
@@ -459,6 +518,42 @@ class DataMapper:
                     return str(cama_info).strip()
 
         return None
+
+    def _extract_servicios(self, row: pd.Series, tipo: str) -> str:
+        """Extrae los códigos de servicios de una fila, filtrando por tipo"""
+
+        if tipo == "Ingreso":
+            servicio = self._safe_get(row, "Servicio Ingreso (Código)")
+            if servicio and str(servicio) != "nan":
+                return str(servicio).strip()
+
+        elif tipo == "Egreso":
+            servicio = self._safe_get(row, "Servicio Egreso (Código)_2")
+            if servicio and str(servicio) != "nan":
+                return str(servicio).strip()
+
+    def _extract_servicios_traslado(self, row: pd.Series) -> List[str]:
+        """Extrae los códigos de servicios de traslado de una fila"""
+        import re
+
+        servicios_traslado = []
+        servicios = []
+
+        servicio_traslados = self._safe_get(row, "Conjunto de Servicios Traslado")
+        if servicio_traslados and isinstance(servicio_traslados, str):
+            servicios = re.findall(r"\[([^\]]+)\]", servicio_traslados)
+
+        for i, servicio in enumerate(servicios):
+            fecha = self._parse_date_universal(
+                self._safe_get(row, f"Fecha       (tr{i+1})")
+            )
+            s = {
+                "codigo": servicio,
+                "fecha": fecha,
+                "tipo": "TRASLADO",
+            }
+            servicios_traslado.append(s)
+        return servicios_traslado
 
     def _map_episodios(self, df: pd.DataFrame) -> List[Dict]:
         """
