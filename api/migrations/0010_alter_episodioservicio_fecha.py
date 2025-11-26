@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0009_gestion_fecha_finalizacion_traslado'),
+        ("api", "0009_gestion_fecha_finalizacion_traslado"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='episodioservicio',
-            name='fecha',
+            model_name="episodioservicio",
+            name="fecha",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

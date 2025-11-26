@@ -15,8 +15,8 @@ from api.models import Episodio, EpisodioServicio
 from api.serializers import (
     EpisodioCreateSerializer,
     EpisodioSerializer,
-    EpisodioUpdateSerializer,
     EpisodioServicioSerializer,
+    EpisodioUpdateSerializer,
 )
 
 
@@ -193,15 +193,14 @@ class EpisodioViewSet(viewsets.ModelViewSet):
             )
 
         return Response(resultado)
-    
+
     @action(detail=True, methods=["get"], url_path="servicios")
     def servicios(self, request, pk=None):
         """
         Devuelve todos los servicios asociados al episodio.
         """
         relaciones = (
-            EpisodioServicio.objects
-            .filter(episodio_id=pk)
+            EpisodioServicio.objects.filter(episodio_id=pk)
             .select_related("servicio")
             .order_by("tipo")
         )

@@ -12,6 +12,7 @@ class EpisodioServicioSerializer(serializers.ModelSerializer):
     """
     Serializer completo para la relación Episodio-Servicio
     """
+
     servicio = ServicioSerializer(read_only=True)
 
     class Meta:
