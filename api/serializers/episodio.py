@@ -65,13 +65,16 @@ class EpisodioSerializer(serializers.ModelSerializer):
                 alertas.append("score_social_alto")
 
         # 2. Extensión Crítica (días > norma_grd * 4/3)
+        tiene_extension_critica = False
         if obj.estancia_norma_grd and obj.estancia_dias:
             umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
                 alertas.append("extension_critica")
+                tiene_extension_critica = True
 
         # 3. Predicción de Estadía Larga (modelo ML)
-        if obj.prediccion_extension == 1:
+        # Solo mostrar si NO tiene extensión crítica (no se ha pasado aún)
+        if obj.prediccion_extension == 1 and not tiene_extension_critica:
             alertas.append("prediccion_estadia_larga")
 
         return alertas
@@ -149,12 +152,14 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             if obj.paciente.score_social >= 10:
                 alertas.append("score_social_alto")
 
+        tiene_extension_critica = False
         if obj.estancia_norma_grd and obj.estancia_dias:
             umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
                 alertas.append("extension_critica")
+                tiene_extension_critica = True
 
-        if obj.prediccion_extension == 1:
+        if obj.prediccion_extension == 1 and not tiene_extension_critica:
             alertas.append("prediccion_estadia_larga")
 
         return alertas
