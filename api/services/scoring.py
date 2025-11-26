@@ -3,8 +3,9 @@ Servicio de scoring: carga modelo/metadata y ejecuta inferencia sobre un DataFra
 Pensado para llamarse tras la importación de los Excel.
 """
 
-from pathlib import Path
 import pickle
+from pathlib import Path
+
 import joblib
 import pandas as pd
 

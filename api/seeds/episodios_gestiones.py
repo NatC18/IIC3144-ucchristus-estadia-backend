@@ -31,10 +31,12 @@ def create_episodios_y_gestiones():
         return
 
     # Buscar pacientes específicos por RUT para tener control exacto
-    maria = Paciente.objects.get(rut="11.111.111-1")  # María González - sin score_social
+    maria = Paciente.objects.get(
+        rut="11.111.111-1"
+    )  # María González - sin score_social
     carlos = Paciente.objects.get(rut="22.222.222-2")  # Carlos Martínez - score 9
     ana = Paciente.objects.get(rut="33.333.333-3")  # Ana López - score 12 (para alerta)
-    
+
     # Episodios activos (sin fecha de egreso)
     episodios_activos = [
         {

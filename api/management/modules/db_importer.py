@@ -551,7 +551,9 @@ class DatabaseImporter:
         Args:
             transferencias_data: Lista de datos de transferencias
         """
-        logger.info(f"Importando {len(transferencias_data)} transferencias (DEPRECATED)...")
+        logger.info(
+            f"Importando {len(transferencias_data)} transferencias (DEPRECATED)..."
+        )
         # Este método ya no hace nada ya que el modelo Transferencia fue removido
         # Las transferencias ahora se manejan a través de gestiones de tipo TRASLADO
         pass

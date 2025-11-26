@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0009_gestion_fecha_finalizacion_traslado'),
+        ("api", "0009_gestion_fecha_finalizacion_traslado"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='episodio',
-            name='prediccion_extension',
-            field=models.IntegerField(blank=True, help_text='Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede', null=True),
+            model_name="episodio",
+            name="prediccion_extension",
+            field=models.IntegerField(
+                blank=True,
+                help_text="Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede",
+                null=True,
+            ),
         ),
     ]

@@ -40,7 +40,13 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "estancia_dias", "alertas"]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "estancia_dias",
+            "alertas",
+        ]
 
     def get_alertas(self, obj):
         """
@@ -50,24 +56,24 @@ class EpisodioSerializer(serializers.ModelSerializer):
         # Solo calcular alertas para episodios activos
         if obj.fecha_egreso:
             return []
-        
+
         alertas = []
-        
+
         # 1. Score Social Alto (>= 10)
         if obj.paciente and obj.paciente.score_social is not None:
             if obj.paciente.score_social >= 10:
-                alertas.append('score_social_alto')
-        
+                alertas.append("score_social_alto")
+
         # 2. Extensión Crítica (días > norma_grd * 4/3)
         if obj.estancia_norma_grd and obj.estancia_dias:
-            umbral_critico = obj.estancia_norma_grd * (4/3)
+            umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
-                alertas.append('extension_critica')
-        
+                alertas.append("extension_critica")
+
         # 3. Predicción de Estadía Larga (modelo ML)
         if obj.prediccion_extension == 1:
-            alertas.append('prediccion_estadia_larga')
-        
+            alertas.append("prediccion_estadia_larga")
+
         return alertas
 
 
@@ -136,19 +142,19 @@ class EpisodioListSerializer(serializers.ModelSerializer):
         """Mismo método que EpisodioSerializer"""
         if obj.fecha_egreso:
             return []
-        
+
         alertas = []
-        
+
         if obj.paciente and obj.paciente.score_social is not None:
             if obj.paciente.score_social >= 10:
-                alertas.append('score_social_alto')
-        
+                alertas.append("score_social_alto")
+
         if obj.estancia_norma_grd and obj.estancia_dias:
-            umbral_critico = obj.estancia_norma_grd * (4/3)
+            umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
-                alertas.append('extension_critica')
-        
+                alertas.append("extension_critica")
+
         if obj.prediccion_extension == 1:
-            alertas.append('prediccion_estadia_larga')
-        
+            alertas.append("prediccion_estadia_larga")
+
         return alertas
