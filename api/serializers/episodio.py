@@ -33,6 +33,7 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "estancia_prequirurgica",
             "estancia_postquirurgica",
             "estancia_norma_grd",
+            "prediccion_extension",
             "estancia_dias",
             "created_at",
             "updated_at",
@@ -73,6 +74,7 @@ class EpisodioUpdateSerializer(serializers.ModelSerializer):
             "estancia_prequirurgica",
             "estancia_postquirurgica",
             "estancia_norma_grd",
+            "prediccion_extension",
         ]
 
 

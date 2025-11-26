@@ -7,6 +7,8 @@ import logging
 import os
 import shutil
 import tempfile
+import pandas as pd   # <-- ADDED
+from api.services.scoring_runner import persist_scores_to_episodios  # <-- ADDED
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -22,7 +24,7 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["POST"])
 def upload_excel_files(request):
     """
-    Endpoint para recibir los 3 archivos Excel y procesarlos
+    Endpoint para recibir los 4 archivos Excel y procesarlos
     """
     try:
         # Verificar que se hayan subido los 4 archivos
@@ -69,8 +71,23 @@ def upload_excel_files(request):
 
             # Ejecutar el comando de importación
             try:
-                # Llamar al comando de Django directamente
                 call_command("importar_excel_local", folder=temp_dir, verbosity=2)
+
+                # ============================================
+                # 🔥 ADDED: SCORING STEP (ML predictions)
+                # ============================================
+                try:
+                    # Cargar excel1 como GRD para scoring
+                    df_grd = pd.read_excel(temp_files["excel1"])
+
+                    # Persist scoring results to Episodio.prediccion_extension
+                    updated = persist_scores_to_episodios(df_grd=df_grd)
+
+                    logger.info(f"Scoring ejecutado. Episodios actualizados: {updated}")
+
+                except Exception as scoring_err:
+                    logger.error(f"Error en scoring: {scoring_err}")
+                # ============================================
 
                 return JsonResponse(
                     {
@@ -78,7 +95,7 @@ def upload_excel_files(request):
                         "message": "Archivos procesados exitosamente",
                         "data": {
                             "files_processed": list(uploaded_files.keys()),
-                            "temp_dir": temp_dir,  # Para debugging, remover en producción
+                            "temp_dir": temp_dir,  # debugging only
                         },
                     }
                 )
@@ -113,8 +130,6 @@ def upload_excel_files(request):
             },
             status=500,
         )
-
-
 @require_http_methods(["GET"])
 def import_status(request):
     """
