@@ -69,6 +69,16 @@ def create_episodios_y_gestiones():
             "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica
             "prediccion_extension": 0,  # Sin predicción positiva
         },
+        {
+            "episodio_cmbd": 100006,
+            "paciente": carlos,  # Carlos Martínez con score_social=9
+            "cama": camas[3] if len(camas) > 3 else None,
+            "fecha_ingreso": timezone.now() - timedelta(days=4),  # 4 días de estadía
+            "tipo_actividad": "Hospitalización",
+            "especialidad": "Oncología",
+            "estancia_norma_grd": 8,  # Norma es 8 días, límite crítico = 10.66 días
+            "prediccion_extension": 1,  # ✅ Predicción positiva - modelo predice que se extenderá
+        },
     ]
 
     # Episodios cerrados (con fecha de egreso)
