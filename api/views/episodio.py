@@ -200,7 +200,7 @@ class EpisodioViewSet(viewsets.ModelViewSet):
         """
         Listar episodios activos con predicción de estadía larga
         GET /api/episodios/alertas_prediccion/
-        
+
         Retorna episodios activos que:
         - Tienen prediccion_extension = 1 (modelo ML predice extensión)
         - NO están ya en extensión crítica (no se han pasado)
@@ -213,15 +213,15 @@ class EpisodioViewSet(viewsets.ModelViewSet):
 
         data = []
         hoy = timezone.now().date()
-        
+
         for ep in episodios:
             dias_estadia = (hoy - ep.fecha_ingreso.date()).days
-            
+
             # Verificar que NO esté en extensión crítica
             tiene_extension_critica = False
             if ep.estancia_norma_grd and dias_estadia > ep.estancia_norma_grd * (4 / 3):
                 tiene_extension_critica = True
-            
+
             # Solo incluir si NO tiene extensión crítica (aún no se ha pasado)
             if not tiene_extension_critica:
                 data.append(
