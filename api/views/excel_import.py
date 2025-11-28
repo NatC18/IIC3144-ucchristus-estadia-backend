@@ -80,11 +80,12 @@ def upload_excel_files(request):
                 try:
                     # Cargar excel1 como GRD para scoring
                     df_grd = pd.read_excel(temp_files["excel1"])
+                    logger.info("🔮 Iniciando scoring desde excel1 (GRD)")
 
                     # Persist scoring results to Episodio.prediccion_extension
                     updated = persist_scores_to_episodios(df_grd=df_grd)
 
-                    logger.info(f"Scoring ejecutado. Episodios actualizados: {updated}")
+                    logger.info(f"✅ Scoring ejecutado. Episodios actualizados: {updated}")
 
                 except Exception as scoring_err:
                     logger.error(f"Error en scoring: {scoring_err}")
