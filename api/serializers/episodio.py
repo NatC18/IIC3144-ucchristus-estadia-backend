@@ -67,9 +67,9 @@ class EpisodioSerializer(serializers.ModelSerializer):
             if obj.estancia_dias > umbral_critico:
                 return {"color": "gray", "probabilidad": obj.probabilidad_extension}
 
-        # Si no tiene probabilidad, retornar null
+        # Si no tiene probabilidad, mostrar gris también
         if obj.probabilidad_extension is None:
-            return None
+            return {"color": "gray", "probabilidad": None}
 
         # Clasificar según rangos de probabilidad
         prob = obj.probabilidad_extension
@@ -190,7 +190,7 @@ class EpisodioListSerializer(serializers.ModelSerializer):
                 return {"color": "gray", "probabilidad": obj.probabilidad_extension}
 
         if obj.probabilidad_extension is None:
-            return None
+            return {"color": "gray", "probabilidad": None}
 
         prob = obj.probabilidad_extension
         if prob >= 0.45:
