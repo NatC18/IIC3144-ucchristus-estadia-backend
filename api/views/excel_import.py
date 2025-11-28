@@ -2,21 +2,18 @@
 Vista para manejar la importación de archivos Excel desde el frontend
 """
 
-import json
 import logging
 import os
 import shutil
 import tempfile
 
-import pandas as pd  # <-- ADDED
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+import pandas as pd
 from django.core.management import call_command
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from api.services.scoring_runner import persist_scores_to_episodios  # <-- ADDED
+from api.services.scoring_runner import persist_scores_to_episodios
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +49,10 @@ def upload_excel_files(request):
                     {
                         "success": False,
                         "error": f"Formato inválido para {file_key}",
-                        "message": f"El archivo {file_key} debe ser un archivo Excel (.xlsx o .xls)",
+                        "message": (
+                            f"El archivo {file_key} debe ser un archivo Excel "
+                            "(.xlsx o .xls)"
+                        ),
                     },
                     status=400,
                 )
@@ -85,7 +85,9 @@ def upload_excel_files(request):
                     # Persist scoring results to Episodio.prediccion_extension
                     updated = persist_scores_to_episodios(df_grd=df_grd)
 
-                    logger.info(f"✅ Scoring ejecutado. Episodios actualizados: {updated}")
+                    logger.info(
+                        "✅ Scoring ejecutado. Episodios actualizados: %s", updated
+                    )
 
                 except Exception as scoring_err:
                     logger.error(f"Error en scoring: {scoring_err}")
