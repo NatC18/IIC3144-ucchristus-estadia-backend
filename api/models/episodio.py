@@ -43,6 +43,11 @@ class Episodio(models.Model):
         null=True,
         help_text="Predicción de extensión de estancia basada en el modelo ML: 0=No se excede, 1=Se excede",
     )
+    probabilidad_extension = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="Probabilidad (0 a 1) de que el episodio exceda la estancia esperada",
+    )
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

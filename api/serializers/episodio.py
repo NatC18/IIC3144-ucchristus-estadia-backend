@@ -35,6 +35,7 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "estancia_postquirurgica",
             "estancia_norma_grd",
             "prediccion_extension",
+            "probabilidad_extension",
             "estancia_dias",
             "alertas",
             "created_at",
@@ -114,6 +115,7 @@ class EpisodioUpdateSerializer(serializers.ModelSerializer):
             "estancia_postquirurgica",
             "estancia_norma_grd",
             "prediccion_extension",
+            "probabilidad_extension",
         ]
 
 
@@ -138,6 +140,7 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             "fecha_egreso",
             "tipo_actividad",
             "alertas",
+            "probabilidad_extension",
         ]
         read_only_fields = ["id", "paciente_nombre", "cama_codigo", "alertas"]
 

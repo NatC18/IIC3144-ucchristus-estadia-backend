@@ -206,6 +206,10 @@ def persist_scores_to_episodios(
     probas = dict(zip(episodio_ids, scored["pred_proba"].tolist()))
 
     episodios = Episodio.objects.filter(episodio_cmbd__in=episodio_ids)
+    print(
+        "🔗 Episodios en BD a actualizar: "
+        f"{episodios.count()} de {len(episodio_ids)} solicitados"
+    )
     updated = 0
     positivos = []
     for ep in episodios:
@@ -213,12 +217,18 @@ def persist_scores_to_episodios(
         if key in preds:
             ep.prediccion_extension = int(preds[key])
             proba = probas.get(key, None)
-            print(f"   → Episodio {key}: pred={ep.prediccion_extension}, proba={proba}")
+            ep.probabilidad_extension = proba
+            print(
+                f"   → Episodio {key}: pred={ep.prediccion_extension}, "
+                f"proba={proba} (probabilidad guardada en DB)"
+            )
             if ep.prediccion_extension == 1:
                 positivos.append((key, proba))
             updated += 1
     if updated:
-        Episodio.objects.bulk_update(episodios, ["prediccion_extension"])
+        Episodio.objects.bulk_update(
+            episodios, ["prediccion_extension", "probabilidad_extension"]
+        )
         print(f"✅ Predicción de extensión actualizada para {updated} episodios")
         if positivos:
             print("⚠️  Episodios con prediccion_extension=1:")
