@@ -66,11 +66,11 @@ class EpisodioSerializer(serializers.ModelSerializer):
             umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
                 return {"color": "gray", "probabilidad": obj.probabilidad_extension}
-        
+
         # Si no tiene probabilidad, retornar null
         if obj.probabilidad_extension is None:
             return None
-        
+
         # Clasificar según rangos de probabilidad
         prob = obj.probabilidad_extension
         if prob >= 0.45:
@@ -174,7 +174,13 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             "alertas",
             "semaforo_riesgo",
         ]
-        read_only_fields = ["id", "paciente_nombre", "cama_codigo", "alertas", "semaforo_riesgo"]
+        read_only_fields = [
+            "id",
+            "paciente_nombre",
+            "cama_codigo",
+            "alertas",
+            "semaforo_riesgo",
+        ]
 
     def get_semaforo_riesgo(self, obj):
         """Mismo método que EpisodioSerializer"""
@@ -182,10 +188,10 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             umbral_critico = obj.estancia_norma_grd * (4 / 3)
             if obj.estancia_dias > umbral_critico:
                 return {"color": "gray", "probabilidad": obj.probabilidad_extension}
-        
+
         if obj.probabilidad_extension is None:
             return None
-        
+
         prob = obj.probabilidad_extension
         if prob >= 0.45:
             return {"color": "red", "probabilidad": prob}
