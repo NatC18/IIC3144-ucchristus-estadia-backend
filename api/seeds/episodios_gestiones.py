@@ -37,6 +37,12 @@ def create_episodios_y_gestiones():
     carlos = Paciente.objects.get(rut="22.222.222-2")  # Carlos Martínez - score 9
     ana = Paciente.objects.get(rut="33.333.333-3")  # Ana López - score 12 (para alerta)
 
+    # Buscar paciente Pedro (o crear si no existe para compatibilidad)
+    try:
+        pedro = Paciente.objects.get(rut="44.444.444-4")
+    except Paciente.DoesNotExist:
+        pedro = carlos  # Fallback si Pedro no existe
+
     # Episodios activos (sin fecha de egreso)
     episodios_activos = [
         {
@@ -46,8 +52,9 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=5),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cardiología",
-            "estancia_norma_grd": 3,  # Este debería aparecer como extensión crítica
+            "estancia_norma_grd": 3,  # Este debería aparecer como extensión crítica (GRIS)
             "prediccion_extension": 1,  # Predicción positiva de estadía larga
+            "probabilidad_extension": 0.72,  # 72% - Ya extendido, semáforo GRIS
         },
         {
             "episodio_cmbd": 100002,
@@ -58,6 +65,7 @@ def create_episodios_y_gestiones():
             "especialidad": "Medicina General",
             "estancia_norma_grd": 7,  # Este NO debería aparecer como extensión crítica
             "prediccion_extension": 0,  # Predicción negativa
+            "probabilidad_extension": 0.22,  # 22% - Bajo riesgo, semáforo VERDE
         },
         {
             "episodio_cmbd": 100005,
@@ -66,8 +74,9 @@ def create_episodios_y_gestiones():
             "fecha_ingreso": timezone.now() - timedelta(days=10),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Neurología",
-            "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica
+            "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica (GRIS)
             "prediccion_extension": 0,  # Sin predicción positiva
+            "probabilidad_extension": 0.65,  # 65% - Ya extendido, semáforo GRIS
         },
         {
             "episodio_cmbd": 100006,
@@ -78,6 +87,18 @@ def create_episodios_y_gestiones():
             "especialidad": "Oncología",
             "estancia_norma_grd": 8,  # Norma es 8 días, límite crítico = 10.66 días
             "prediccion_extension": 1,  # ✅ Predicción positiva - modelo predice que se extenderá
+            "probabilidad_extension": 0.52,  # 52% - Alto riesgo, semáforo ROJO
+        },
+        {
+            "episodio_cmbd": 100008,
+            "paciente": pedro,  # Pedro Rodríguez Castro
+            "cama": None,  # Sin cama asignada
+            "fecha_ingreso": timezone.now() - timedelta(days=2),
+            "tipo_actividad": "Hospitalización",
+            "especialidad": "Traumatología",
+            "estancia_norma_grd": 5,  # 2 días de 5, NO extendido
+            "prediccion_extension": 0,
+            "probabilidad_extension": 0.38,  # 38% - Riesgo medio, semáforo AMARILLO
         },
     ]
 
@@ -115,7 +136,8 @@ def create_episodios_y_gestiones():
     episodios_creados = []
 
     for episodio_data in todos_episodios:
-        if episodio_data["paciente"] and episodio_data["cama"]:
+        # Permitir episodios sin cama (como 100008)
+        if episodio_data["paciente"]:
             episodio, created = Episodio.objects.get_or_create(
                 episodio_cmbd=episodio_data["episodio_cmbd"], defaults=episodio_data
             )

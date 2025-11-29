@@ -18,6 +18,7 @@ class EpisodioSerializer(serializers.ModelSerializer):
     paciente = serializers.PrimaryKeyRelatedField(read_only=True)
     estancia_dias = serializers.IntegerField(read_only=True)
     alertas = serializers.SerializerMethodField()
+    semaforo_riesgo = serializers.SerializerMethodField()
 
     class Meta:
         model = Episodio
@@ -38,6 +39,7 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "probabilidad_extension",
             "estancia_dias",
             "alertas",
+            "semaforo_riesgo",
             "created_at",
             "updated_at",
         ]
@@ -47,7 +49,36 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "updated_at",
             "estancia_dias",
             "alertas",
+            "semaforo_riesgo",
         ]
+
+    def get_semaforo_riesgo(self, obj):
+        """
+        Calcula el color del semáforo según probabilidad de extensión.
+        Retorna dict con 'color' y 'probabilidad'.
+        - gray: episodio ya se extendió (tiene extensión crítica)
+        - green: probabilidad baja (< 0.3)
+        - yellow: probabilidad media (0.3 - 0.45)
+        - red: probabilidad alta (>= 0.45)
+        """
+        # Si ya tiene extensión crítica, mostrar gris
+        if obj.estancia_norma_grd and obj.estancia_dias:
+            umbral_critico = obj.estancia_norma_grd * (4 / 3)
+            if obj.estancia_dias > umbral_critico:
+                return {"color": "gray", "probabilidad": obj.probabilidad_extension}
+
+        # Si no tiene probabilidad, mostrar gris también
+        if obj.probabilidad_extension is None:
+            return {"color": "gray", "probabilidad": None}
+
+        # Clasificar según rangos de probabilidad
+        prob = obj.probabilidad_extension
+        if prob >= 0.45:
+            return {"color": "red", "probabilidad": prob}  # Alto riesgo
+        elif prob >= 0.3:
+            return {"color": "yellow", "probabilidad": prob}  # Riesgo medio
+        else:
+            return {"color": "green", "probabilidad": prob}  # Bajo riesgo
 
     def get_alertas(self, obj):
         """
@@ -127,6 +158,7 @@ class EpisodioListSerializer(serializers.ModelSerializer):
     paciente_nombre = serializers.CharField(source="paciente.nombre", read_only=True)
     cama_codigo = serializers.CharField(source="cama.codigo_cama", read_only=True)
     alertas = serializers.SerializerMethodField()
+    semaforo_riesgo = serializers.SerializerMethodField()
 
     class Meta:
         model = Episodio
@@ -140,9 +172,33 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             "fecha_egreso",
             "tipo_actividad",
             "alertas",
-            "probabilidad_extension",
+            "semaforo_riesgo",
         ]
-        read_only_fields = ["id", "paciente_nombre", "cama_codigo", "alertas"]
+        read_only_fields = [
+            "id",
+            "paciente_nombre",
+            "cama_codigo",
+            "alertas",
+            "semaforo_riesgo",
+        ]
+
+    def get_semaforo_riesgo(self, obj):
+        """Mismo método que EpisodioSerializer"""
+        if obj.estancia_norma_grd and obj.estancia_dias:
+            umbral_critico = obj.estancia_norma_grd * (4 / 3)
+            if obj.estancia_dias > umbral_critico:
+                return {"color": "gray", "probabilidad": obj.probabilidad_extension}
+
+        if obj.probabilidad_extension is None:
+            return {"color": "gray", "probabilidad": None}
+
+        prob = obj.probabilidad_extension
+        if prob >= 0.45:
+            return {"color": "red", "probabilidad": prob}
+        elif prob >= 0.3:
+            return {"color": "yellow", "probabilidad": prob}
+        else:
+            return {"color": "green", "probabilidad": prob}
 
     def get_alertas(self, obj):
         """Mismo método que EpisodioSerializer"""
