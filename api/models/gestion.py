@@ -170,8 +170,9 @@ class Gestion(models.Model):
         """Calcular duración de la gestión en días"""
         if self.fecha_fin and self.fecha_inicio:
             return (self.fecha_fin - self.fecha_inicio).days
+        elif self.fecha_inicio:
+            from django.utils import timezone
+            today = timezone.now()
+            return (today - self.fecha_inicio).days
         else:
-            from datetime import date
-
-            today = date.now()
-            return (today - self.fecha_inicio).days if self.fecha_inicio else None
+            return None
