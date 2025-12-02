@@ -37,6 +37,7 @@ class EpisodioSerializer(serializers.ModelSerializer):
             "estancia_norma_grd",
             "prediccion_extension",
             "probabilidad_extension",
+            "ignorar",
             "estancia_dias",
             "alertas",
             "semaforo_riesgo",
@@ -126,6 +127,7 @@ class EpisodioCreateSerializer(serializers.ModelSerializer):
             "tipo_actividad",
             "episodio_cmbd",
             "especialidad",
+            "ignorar",
         ]
 
 
@@ -147,6 +149,7 @@ class EpisodioUpdateSerializer(serializers.ModelSerializer):
             "estancia_norma_grd",
             "prediccion_extension",
             "probabilidad_extension",
+            "ignorar",
         ]
 
 
@@ -171,6 +174,7 @@ class EpisodioListSerializer(serializers.ModelSerializer):
             "fecha_ingreso",
             "fecha_egreso",
             "tipo_actividad",
+            "ignorar",
             "alertas",
             "semaforo_riesgo",
         ]

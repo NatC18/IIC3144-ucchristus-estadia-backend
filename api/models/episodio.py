@@ -48,6 +48,7 @@ class Episodio(models.Model):
         null=True,
         help_text="Probabilidad (0 a 1) de que el episodio exceda la estancia esperada",
     )
+    ignorar = models.BooleanField(default=False)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
