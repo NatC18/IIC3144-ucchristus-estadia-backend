@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from api.models import Cama, Episodio, Gestion, Paciente, Transferencia
+from api.models import Cama, Episodio, EpisodioServicio, Gestion, Paciente, Servicio
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -30,7 +30,6 @@ class DatabaseImporter:
             "camas": {"created": 0, "updated": 0, "errors": 0},
             "episodios": {"created": 0, "updated": 0, "errors": 0},
             "gestiones": {"created": 0, "updated": 0, "errors": 0},
-            "transferencias": {"created": 0, "updated": 0, "errors": 0},
         }
         self.error_details = []
         # Mapeos para facilitar búsquedas
@@ -67,10 +66,6 @@ class DatabaseImporter:
                 # 4. Importar gestiones (dependen de episodios)
                 if "gestiones" in mapped_data:
                     self._import_gestiones(mapped_data["gestiones"])
-
-                # 5. Importar transferencias (dependen de episodios)
-                if "transferencias" in mapped_data:
-                    self._import_transferencias(mapped_data["transferencias"])
 
             logger.info("Importación completada exitosamente")
 
@@ -187,6 +182,9 @@ class DatabaseImporter:
                     if paciente_data.get("score_social") and not paciente.score_social:
                         paciente.score_social = paciente_data.get("score_social")
                         updated = True
+                        logger.info(
+                            f"Actualizando score social de {rut}: '{paciente.score_social}'"
+                        )
 
                     if updated:
                         paciente.save()
@@ -338,6 +336,7 @@ class DatabaseImporter:
                 if created:
                     self.results["episodios"]["created"] += 1
                     logger.debug(f"Episodio creado: {episodio_cmbd}")
+
                 else:
                     # Actualizar si es necesario
                     updated = False
@@ -356,6 +355,11 @@ class DatabaseImporter:
                         episodio.save()
                         self.results["episodios"]["updated"] += 1
                         logger.debug(f"Episodio actualizado: {episodio_cmbd}")
+
+                # Actualizar servicios asociados al episodio
+
+                servicios = episodio_data.get("servicios", [])
+                self._asociar_servicios(episodio, servicios)
 
                 # Actualizar el mapeo para otros episodios
                 self.episodio_to_paciente[episodio_cmbd] = paciente
@@ -411,7 +415,7 @@ class DatabaseImporter:
                 # Buscar usuario si se especifica
                 usuario = self._find_usuario(gestion_data.get("usuario_email"))
 
-                # Crear gestión
+                # Crear gestión con todos los campos disponibles
                 gestion_data_clean = {
                     "episodio": episodio,
                     "usuario": usuario,
@@ -421,6 +425,45 @@ class DatabaseImporter:
                     "fecha_fin": gestion_data.get("fecha_fin"),
                     "informe": gestion_data.get("informe"),
                 }
+
+                # Agregar campos de traslado si existen
+                # estado_traslado solo se incluye si existe y tipo_gestion es TRASLADO
+                if gestion_data.get("estado_traslado"):
+                    gestion_data_clean["estado_traslado"] = gestion_data.get(
+                        "estado_traslado"
+                    )
+                if gestion_data.get("tipo_traslado"):
+                    gestion_data_clean["tipo_traslado"] = gestion_data.get(
+                        "tipo_traslado"
+                    )
+                if gestion_data.get("motivo_traslado"):
+                    gestion_data_clean["motivo_traslado"] = gestion_data.get(
+                        "motivo_traslado"
+                    )
+                if gestion_data.get("centro_destinatario"):
+                    gestion_data_clean["centro_destinatario"] = gestion_data.get(
+                        "centro_destinatario"
+                    )
+                if gestion_data.get("tipo_solicitud_traslado"):
+                    gestion_data_clean["tipo_solicitud_traslado"] = gestion_data.get(
+                        "tipo_solicitud_traslado"
+                    )
+                if gestion_data.get("nivel_atencion_traslado"):
+                    gestion_data_clean["nivel_atencion_traslado"] = gestion_data.get(
+                        "nivel_atencion_traslado"
+                    )
+                if gestion_data.get("motivo_rechazo_traslado"):
+                    gestion_data_clean["motivo_rechazo_traslado"] = gestion_data.get(
+                        "motivo_rechazo_traslado"
+                    )
+                if gestion_data.get("motivo_cancelacion_traslado"):
+                    gestion_data_clean["motivo_cancelacion_traslado"] = (
+                        gestion_data.get("motivo_cancelacion_traslado")
+                    )
+                if gestion_data.get("fecha_finalizacion_traslado"):
+                    gestion_data_clean["fecha_finalizacion_traslado"] = (
+                        gestion_data.get("fecha_finalizacion_traslado")
+                    )
 
                 # Filtrar valores None
                 gestion_data_clean = {
@@ -546,142 +589,74 @@ class DatabaseImporter:
             logger.debug(f"No se encontró usuario con email: {email}")
             return None
 
-    def _import_transferencias(self, transferencias_data: List[Dict]) -> None:
+    def _find_servicio_by_codigo(self, codigo: str) -> Optional[Servicio]:
         """
-        Importa datos de transferencias
+        Busca servicio por código
 
         Args:
-            transferencias_data: Lista de datos de transferencias
+            codigo: Código del servicio
+
+        Returns:
+            Servicio o None si no se encuentra
         """
-        logger.info(f"Importando {len(transferencias_data)} transferencias...")
+        if not codigo:
+            return None
 
-        for transferencia_data in transferencias_data:
-            try:
-                episodio_cmbd = transferencia_data.get("episodio_cmbd")
-                if not episodio_cmbd:
-                    self.results["transferencias"]["errors"] += 1
-                    self.error_details.append("Transferencia sin episodio_cmbd")
-                    continue
+        try:
+            return Servicio.objects.get(codigo=codigo)
+        except Servicio.DoesNotExist:
+            logger.debug(f"No se encontró servicio con código: {codigo}")
+            return None
 
-                # Buscar episodio correspondiente
-                try:
-                    episodio = Episodio.objects.get(episodio_cmbd=episodio_cmbd)
-                except Episodio.DoesNotExist:
-                    self.results["transferencias"]["errors"] += 1
-                    self.error_details.append(
-                        f"No se encontró episodio {episodio_cmbd} para transferencia"
-                    )
-                    continue
+    def _check_episodio_servicio(
+        self, episodio: Episodio, servicio_codigo: str, servicio_tipo: str = None
+    ) -> bool:
+        """
+        Verifica si un servicio con cierto código y tipo ya está asociado al episodio.
 
-                # Buscar o crear gestión asociada
-                gestion, gestion_created = Gestion.objects.get_or_create(
-                    episodio=episodio,
-                    tipo_gestion="TRANSFERENCIA",
-                    defaults={
-                        "episodio": episodio,
-                        "fecha_inicio": transferencia_data.get("fecha_solicitud"),
-                    },
-                )
+        Args:
+            episodio: Episodio actual
+            servicio_codigo: Código del servicio a buscar
+            tipo: Tipo de la relación (INGRESO, TRASLADO, EGRESO)
 
-                if gestion_created:
-                    logger.debug(
-                        f"Gestión de transferencia creada para episodio {episodio_cmbd}"
-                    )
+        Returns:
+            True si existe relación, False si no
+        """
+        return episodio.servicios.filter(
+            servicio__codigo=servicio_codigo,
+            tipo=servicio_tipo,
+        ).exists()
 
-                # Verificar si ya existe transferencia para esta gestión
-                transferencia, created = Transferencia.objects.get_or_create(
-                    gestion=gestion,
-                    defaults={
-                        "estado": transferencia_data.get("estado", "PENDIENTE"),
-                        "motivo_cancelacion": transferencia_data.get(
-                            "motivo_cancelacion"
-                        ),
-                        "motivo_rechazo": transferencia_data.get("motivo_rechazo"),
-                        "tipo_traslado": transferencia_data.get("tipo_traslado", ""),
-                        "motivo_traslado": transferencia_data.get(
-                            "motivo_traslado", ""
-                        ),
-                        "centro_destinatario": transferencia_data.get(
-                            "centro_destinatario", ""
-                        ),
-                    },
-                )
+    def _asociar_servicios(self, episodio, servicios):
+        contador = 0
 
-                if created:
-                    self.results["transferencias"]["created"] += 1
-                    logger.debug(f"Transferencia creada para episodio {episodio_cmbd}")
-                else:
-                    # Actualizar datos si es necesario
-                    updated = False
-                    if transferencia_data.get(
-                        "estado"
-                    ) and transferencia.estado != transferencia_data.get("estado"):
-                        transferencia.estado = transferencia_data.get("estado")
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_cancelacion"
-                    ) and transferencia.motivo_cancelacion != transferencia_data.get(
-                        "motivo_cancelacion"
-                    ):
-                        transferencia.motivo_cancelacion = transferencia_data.get(
-                            "motivo_cancelacion"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_rechazo"
-                    ) and transferencia.motivo_rechazo != transferencia_data.get(
-                        "motivo_rechazo"
-                    ):
-                        transferencia.motivo_rechazo = transferencia_data.get(
-                            "motivo_rechazo"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "tipo_traslado"
-                    ) and transferencia.tipo_traslado != transferencia_data.get(
-                        "tipo_traslado"
-                    ):
-                        transferencia.tipo_traslado = transferencia_data.get(
-                            "tipo_traslado"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "motivo_traslado"
-                    ) and transferencia.motivo_traslado != transferencia_data.get(
-                        "motivo_traslado"
-                    ):
-                        transferencia.motivo_traslado = transferencia_data.get(
-                            "motivo_traslado"
-                        )
-                        updated = True
-                    if transferencia_data.get(
-                        "centro_destinatario"
-                    ) and transferencia.centro_destinatario != transferencia_data.get(
-                        "centro_destinatario"
-                    ):
-                        transferencia.centro_destinatario = transferencia_data.get(
-                            "centro_destinatario"
-                        )
-                        updated = True
+        for info in servicios:
+            codigo = info.get("codigo")
+            tipo = info.get("tipo")
+            if not codigo:
+                continue
 
-                    if updated:
-                        transferencia.save()
-                        self.results["transferencias"]["updated"] += 1
-                        logger.debug(
-                            f"Transferencia actualizada para episodio {episodio_cmbd}"
-                        )
+            if self._check_episodio_servicio(episodio, codigo, tipo):
+                continue
 
-            except ValidationError as e:
-                self.results["transferencias"]["errors"] += 1
-                error_msg = f"Error validación transferencia para episodio {episodio_cmbd}: {str(e)}"
-                self.error_details.append(error_msg)
-                logger.error(error_msg)
+            servicio = self._find_servicio_by_codigo(codigo)
+            if not servicio:
+                logger.warning(f"Servicio {codigo} no encontrado")
+                continue
 
-            except Exception as e:
-                self.results["transferencias"]["errors"] += 1
-                error_msg = f"Error procesando transferencia para episodio {episodio_cmbd}: {str(e)}"
-                self.error_details.append(error_msg)
-                logger.error(error_msg)
+            episodio_servicio = EpisodioServicio.objects.create(
+                episodio=episodio,
+                servicio=servicio,
+                fecha=info.get("fecha"),
+                tipo=info.get("tipo"),
+            )
+
+            contador += 1
+
+        if contador:
+            logger.info(
+                f"{contador} servicios asociados al episodio {episodio.episodio_cmbd}"
+            )
 
     def _get_results_summary(self) -> Dict:
         """

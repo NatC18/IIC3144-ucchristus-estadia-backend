@@ -46,6 +46,9 @@ class GestionCreateSerializerTest(TestCase):
             "fecha_inicio": self.fecha_inicio,
             "fecha_fin": self.fecha_fin_correcta,
             "informe": "Gestión inicial de traslado creada correctamente",
+            # Agregar campos de traslado requeridos
+            "estado_traslado": "PENDIENTE",
+            "tipo_traslado": "URGENCIA",
         }
 
         serializer = GestionCreateSerializer(data=data)

@@ -85,4 +85,5 @@ class PacienteListSerializer(serializers.ModelSerializer):
             "edad",
             "prevision_1",
             "prevision_2",
+            "score_social",
         ]

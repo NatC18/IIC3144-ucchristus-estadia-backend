@@ -37,7 +37,7 @@ def create_pacientes():
             "sexo": "F",
             "prevision_1": "FONASA",
             "prevision_2": None,
-            # score_social: NULL
+            "score_social": 12,  # Score social alto para alerta
         },
         {
             "rut": "44.444.444-4",

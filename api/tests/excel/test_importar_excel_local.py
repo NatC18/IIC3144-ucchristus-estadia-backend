@@ -36,12 +36,12 @@ def test_get_folder_path_not_exists(tmp_path, settings, command):
 
 
 def test_check_excel_files_found(tmp_path, command):
-    # Crea tres archivos excel1.xlsx, excel2.xlsx, excel3.xlsx
-    for i in range(1, 4):
+    # Crea tres archivos excel1.xlsx, excel2.xlsx, excel3.xlsx, excel4.xlsx
+    for i in range(1, 5):
         (tmp_path / f"excel{i}.xlsx").touch()
 
     files = command._check_excel_files(str(tmp_path))
-    assert all(k in files for k in ["excel1", "excel2", "excel3"])
+    assert all(k in files for k in ["excel1", "excel2", "excel3", "excel4"])
 
 
 def test_check_excel_files_with_xls_extension(tmp_path, command):
@@ -49,6 +49,7 @@ def test_check_excel_files_with_xls_extension(tmp_path, command):
     (tmp_path / "excel1.xls").touch()
     (tmp_path / "excel2.xlsx").touch()
     (tmp_path / "excel3.xlsx").touch()
+    (tmp_path / "excel4.xlsx").touch()
 
     files = command._check_excel_files(str(tmp_path))
     assert "excel1" in files

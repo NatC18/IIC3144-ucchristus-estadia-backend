@@ -30,34 +30,75 @@ def create_episodios_y_gestiones():
         print("  ⚠️ No hay médicos disponibles. Ejecuta primero el seed de usuarios.")
         return
 
+    # Buscar pacientes específicos por RUT para tener control exacto
+    maria = Paciente.objects.get(
+        rut="11.111.111-1"
+    )  # María González - sin score_social
+    carlos = Paciente.objects.get(rut="22.222.222-2")  # Carlos Martínez - score 9
+    ana = Paciente.objects.get(rut="33.333.333-3")  # Ana López - score 12 (para alerta)
+
+    # Buscar paciente Pedro (o crear si no existe para compatibilidad)
+    try:
+        pedro = Paciente.objects.get(rut="44.444.444-4")
+    except Paciente.DoesNotExist:
+        pedro = carlos  # Fallback si Pedro no existe
+
     # Episodios activos (sin fecha de egreso)
     episodios_activos = [
         {
             "episodio_cmbd": 100001,
-            "paciente": pacientes[0] if len(pacientes) > 0 else None,
+            "paciente": maria,
             "cama": camas[0] if len(camas) > 0 else None,
             "fecha_ingreso": timezone.now() - timedelta(days=5),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Cardiología",
-            "estancia_norma_grd": 3,  # Este debería aparecer como extensión crítica
+            "estancia_norma_grd": 3,  # Este debería aparecer como extensión crítica (GRIS)
+            "prediccion_extension": 1,  # Predicción positiva de estadía larga
+            "probabilidad_extension": 0.72,  # 72% - Ya extendido, semáforo GRIS
         },
         {
             "episodio_cmbd": 100002,
-            "paciente": pacientes[1] if len(pacientes) > 1 else None,
+            "paciente": carlos,
             "cama": camas[1] if len(camas) > 1 else None,
             "fecha_ingreso": timezone.now() - timedelta(days=3),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Medicina General",
             "estancia_norma_grd": 7,  # Este NO debería aparecer como extensión crítica
+            "prediccion_extension": 0,  # Predicción negativa
+            "probabilidad_extension": 0.22,  # 22% - Bajo riesgo, semáforo VERDE
         },
         {
             "episodio_cmbd": 100005,
-            "paciente": pacientes[2] if len(pacientes) > 2 else None,
+            "paciente": ana,  # Ana López con score_social=12 para alerta
             "cama": camas[2] if len(camas) > 2 else None,
             "fecha_ingreso": timezone.now() - timedelta(days=10),
             "tipo_actividad": "Hospitalización",
             "especialidad": "Neurología",
-            "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica
+            "estancia_norma_grd": 6,  # Este debería aparecer como extensión crítica (GRIS)
+            "prediccion_extension": 0,  # Sin predicción positiva
+            "probabilidad_extension": 0.65,  # 65% - Ya extendido, semáforo GRIS
+        },
+        {
+            "episodio_cmbd": 100006,
+            "paciente": carlos,  # Carlos Martínez con score_social=9
+            "cama": camas[3] if len(camas) > 3 else None,
+            "fecha_ingreso": timezone.now() - timedelta(days=4),  # 4 días de estadía
+            "tipo_actividad": "Hospitalización",
+            "especialidad": "Oncología",
+            "estancia_norma_grd": 8,  # Norma es 8 días, límite crítico = 10.66 días
+            "prediccion_extension": 1,  # ✅ Predicción positiva - modelo predice que se extenderá
+            "probabilidad_extension": 0.52,  # 52% - Alto riesgo, semáforo ROJO
+        },
+        {
+            "episodio_cmbd": 100008,
+            "paciente": pedro,  # Pedro Rodríguez Castro
+            "cama": None,  # Sin cama asignada
+            "fecha_ingreso": timezone.now() - timedelta(days=2),
+            "tipo_actividad": "Hospitalización",
+            "especialidad": "Traumatología",
+            "estancia_norma_grd": 5,  # 2 días de 5, NO extendido
+            "prediccion_extension": 0,
+            "probabilidad_extension": 0.38,  # 38% - Riesgo medio, semáforo AMARILLO
         },
     ]
 
@@ -74,6 +115,7 @@ def create_episodios_y_gestiones():
             "estancia_norma_grd": 7.0,
             "inlier_outlier_flag": "Outlier",
             "estancia_postquirurgica": 32,
+            "prediccion_extension": 0,  # Episodio cerrado
         },
         {
             "episodio_cmbd": 100004,
@@ -86,6 +128,7 @@ def create_episodios_y_gestiones():
             "estancia_norma_grd": 4.0,
             "inlier_outlier_flag": "Inlier",
             "estancia_postquirurgica": 23,
+            "prediccion_extension": 0,  # Episodio cerrado
         },
     ]
 
@@ -93,7 +136,8 @@ def create_episodios_y_gestiones():
     episodios_creados = []
 
     for episodio_data in todos_episodios:
-        if episodio_data["paciente"] and episodio_data["cama"]:
+        # Permitir episodios sin cama (como 100008)
+        if episodio_data["paciente"]:
             episodio, created = Episodio.objects.get_or_create(
                 episodio_cmbd=episodio_data["episodio_cmbd"], defaults=episodio_data
             )

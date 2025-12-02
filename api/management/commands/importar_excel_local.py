@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Importa datos desde archivos Excel locales (excel1.xlsx, excel2.xlsx, excel3.xlsx)"
+    help = "Importa datos desde archivos Excel locales (excel1.xlsx, excel2.xlsx, excel3.xlsx, excel4.xlsx)"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -149,7 +149,7 @@ class Command(BaseCommand):
 
     def _check_excel_files(self, folder_path):
         """Verifica que existen los archivos Excel necesarios"""
-        required_files = ["excel1.xlsx", "excel2.xlsx", "excel3.xlsx"]
+        required_files = ["excel1.xlsx", "excel2.xlsx", "excel3.xlsx", "excel4.xlsx"]
         excel_files = {}
 
         for filename in required_files:
@@ -194,9 +194,11 @@ class Command(BaseCommand):
             "excel1.xlsx",
             "excel2.xlsx",
             "excel3.xlsx",
+            "excel4.xlsx",
             "excel1.xls",
             "excel2.xls",
             "excel3.xls",
+            "excel4.xls",
         ]
         found_required = [f for f, _ in excel_files if f in required_files]
 
@@ -206,7 +208,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"  ✓ {filename}")
         else:
             self.stdout.write(
-                "\n⚠️  Archivos requeridos (excel1, excel2, excel3) no encontrados"
+                "\n⚠️  Archivos requeridos (excel1, excel2, excel3, excel4) no encontrados"
             )
 
     def _simulate_import(self, mapped_data):

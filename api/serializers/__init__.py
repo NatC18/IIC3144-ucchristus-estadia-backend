@@ -19,13 +19,18 @@ from .gestion import (
     GestionSerializer,
     GestionUpdateSerializer,
 )
+from .nota import (
+    NotaCreateSerializer,
+    NotaListSerializer,
+    NotaSerializer,
+    NotaUpdateSerializer,
+)
 from .paciente import (
     PacienteCreateSerializer,
     PacienteListSerializer,
     PacienteSerializer,
 )
 from .servicio import ServicioSerializer
-from .transferencia import TransferenciaSerializer
 
 __all__ = [
     "PacienteSerializer",
@@ -40,6 +45,10 @@ __all__ = [
     "GestionCreateSerializer",
     "GestionListSerializer",
     "GestionUpdateSerializer",
+    "NotaSerializer",
+    "NotaCreateSerializer",
+    "NotaListSerializer",
+    "NotaUpdateSerializer",
     "CamaSerializer",
     "EpisodioServicioSerializer",
     "EpisodioSerializer",
@@ -47,5 +56,4 @@ __all__ = [
     "EpisodioListSerializer",
     "EpisodioUpdateSerializer",
     "ServicioSerializer",
-    "TransferenciaSerializer",
 ]
