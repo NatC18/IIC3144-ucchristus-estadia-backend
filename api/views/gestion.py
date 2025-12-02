@@ -248,9 +248,10 @@ class GestionViewSet(viewsets.ModelViewSet):
             """Convierte datetime aware a naive para compatibilidad con Excel"""
             if dt is None:
                 return None
-            if hasattr(dt, 'tzinfo') and dt.tzinfo is not None:
+            if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
                 # Convertir a la zona horaria local y quitar el tzinfo
                 from django.utils import timezone
+
                 local_dt = timezone.localtime(dt)
                 return local_dt.replace(tzinfo=None)
             return dt
@@ -280,11 +281,7 @@ class GestionViewSet(viewsets.ModelViewSet):
                     if gestion.estado_traslado
                     else ""
                 ),
-                (
-                    gestion.get_tipo_traslado_display()
-                    if gestion.tipo_traslado
-                    else ""
-                ),
+                (gestion.get_tipo_traslado_display() if gestion.tipo_traslado else ""),
                 gestion.motivo_traslado or "",
                 gestion.centro_destinatario or "",
                 (

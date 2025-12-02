@@ -172,6 +172,7 @@ class Gestion(models.Model):
             return (self.fecha_fin - self.fecha_inicio).days
         elif self.fecha_inicio:
             from django.utils import timezone
+
             today = timezone.now()
             return (today - self.fecha_inicio).days
         else:
